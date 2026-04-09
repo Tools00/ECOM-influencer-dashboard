@@ -1,84 +1,110 @@
+import { Suspense } from "react";
 import { fetchInfluencers, fetchOrders } from "@/lib/supabase";
-import { computeInfluencerStats, computeDashboardSummary } from "@/lib/analytics";
+import {
+  computeInfluencerStats,
+  computeDashboardSummary,
+  computePeriodComparison,
+  computeDailyRevenue,
+  computeCategoryRevenue,
+  filterOrdersByDateRange,
+} from "@/lib/analytics";
+import { DateRange } from "@/lib/types";
 import { KPICard } from "@/components/KPICard";
 import { InfluencerTable } from "@/components/InfluencerTable";
-import { RevenueChart } from "@/components/RevenueChart";
-import { ReturnRateChart } from "@/components/ReturnRateChart";
+import { RevenueTrendChart } from "@/components/RevenueTrendChart";
+import { CategoryDonutChart } from "@/components/CategoryDonutChart";
+import { RecentOrdersFeed } from "@/components/RecentOrdersFeed";
+import { Header } from "@/components/layout/Header";
+import { DateRangeSelector } from "@/components/DateRangeSelector";
+import { formatEUR, formatPct } from "@/lib/formatters";
 import {
   ShoppingBag,
   TrendingUp,
   RotateCcw,
   Euro,
   Award,
+  BarChart2,
 } from "lucide-react";
 
-function EUR(n: number) {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(n);
+function isValidRange(v: unknown): v is DateRange {
+  return v === "7d" || v === "30d" || v === "90d" || v === "all";
 }
 
-export default async function DashboardPage() {
-  const [influencers, orders] = await Promise.all([
+interface Props {
+  searchParams: Promise<{ range?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const range: DateRange = isValidRange(params.range) ? params.range : "30d";
+
+  const [influencers, allOrders] = await Promise.all([
     fetchInfluencers(),
     fetchOrders(),
   ]);
 
-  const stats = influencers.map((inf) => computeInfluencerStats(inf, orders));
+  const filteredOrders = filterOrdersByDateRange(allOrders, range);
+  const stats = influencers.map((inf) => computeInfluencerStats(inf, filteredOrders));
   const summary = computeDashboardSummary(stats);
+  const comparison = computePeriodComparison(influencers, allOrders, range);
+  const dailyRevenue = computeDailyRevenue(filteredOrders);
+  const categoryRevenue = computeCategoryRevenue(filteredOrders);
+
+  const { changes } = comparison;
 
   return (
-    <main className="min-h-screen">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              Influencer Performance Dashboard
-            </h1>
-            <p className="text-sm text-gray-400 mt-0.5">
-              März 2024 · Shopify-Daten via Discount Code Tracking
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full">
-              Live-Daten
-            </span>
-          </div>
-        </div>
-      </header>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <Header>
+        <h1 className="text-sm font-semibold text-gray-800">Dashboard</h1>
+        <Suspense>
+          <DateRangeSelector current={range} />
+        </Suspense>
+      </Header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <main className="flex-1 overflow-y-auto bg-gray-50 px-6 py-6 space-y-6">
+
         {/* KPI Cards */}
-        <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <KPICard
-            label="Brutto-Umsatz"
-            value={EUR(summary.total_gross_revenue)}
-            subtext={`${summary.total_orders} Bestellungen`}
-            icon={<ShoppingBag size={18} />}
-          />
+        <section className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <KPICard
             label="Netto-Umsatz"
-            value={EUR(summary.total_net_revenue)}
+            value={formatEUR(summary.total_net_revenue)}
             subtext="nach Retouren"
-            icon={<Euro size={18} />}
+            icon={<Euro size={16} />}
+            trend={changes.revenue_change_pct >= 0 ? "up" : "down"}
+            trendPct={changes.revenue_change_pct}
+            sparklineData={dailyRevenue.map((d) => d.net)}
+            highlight
+          />
+          <KPICard
+            label="Brutto-Umsatz"
+            value={formatEUR(summary.total_gross_revenue)}
+            subtext={`${summary.total_orders} Bestellungen`}
+            icon={<ShoppingBag size={16} />}
+            trend={changes.orders_change_pct >= 0 ? "up" : "down"}
+            trendPct={changes.orders_change_pct}
           />
           <KPICard
             label="Gesamtprofit"
-            value={EUR(summary.total_profit)}
-            subtext={summary.total_profit >= 0 ? "Positiv" : "Verlust"}
-            trend={summary.total_profit >= 0 ? "up" : "down"}
-            icon={<TrendingUp size={18} />}
-            highlight={summary.total_profit >= 0}
+            value={formatEUR(summary.total_profit)}
+            subtext={summary.total_profit >= 0 ? "Im Plus" : "Im Minus"}
+            icon={<TrendingUp size={16} />}
+            trend={changes.profit_change_pct >= 0 ? "up" : "down"}
+            trendPct={changes.profit_change_pct}
           />
           <KPICard
             label="Ø Retourenquote"
-            value={`${summary.avg_return_rate.toFixed(1)}%`}
+            value={formatPct(summary.avg_return_rate)}
             subtext={summary.avg_return_rate > 20 ? "Handlungsbedarf" : "Im Rahmen"}
-            trend={summary.avg_return_rate > 20 ? "down" : "neutral"}
-            icon={<RotateCcw size={18} />}
+            icon={<RotateCcw size={16} />}
+            trend={changes.return_rate_change <= 0 ? "up" : "down"}
+            trendPct={Math.abs(changes.return_rate_change)}
+          />
+          <KPICard
+            label="Ø Bestellwert"
+            value={formatEUR(summary.avg_aov)}
+            subtext="pro Bestellung"
+            icon={<BarChart2 size={16} />}
+            trend="neutral"
           />
           <KPICard
             label="Top Performer"
@@ -89,40 +115,39 @@ export default async function DashboardPage() {
                 : undefined
             }
             trend="up"
-            icon={<Award size={18} />}
+            icon={<Award size={16} />}
           />
         </section>
 
-        {/* Charts */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Charts Row */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2">
-            <RevenueChart stats={stats} />
+            <RevenueTrendChart data={dailyRevenue} />
           </div>
           <div>
-            <ReturnRateChart stats={stats} />
+            <CategoryDonutChart data={categoryRevenue} />
           </div>
         </section>
 
-        {/* Table */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-semibold text-gray-800">
-              Influencer im Detail
-            </h2>
-            <span className="text-xs text-gray-400">
-              Klick auf Spaltenheader zum Sortieren
-            </span>
+        {/* Table + Recent Orders */}
+        <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <div className="xl:col-span-2">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800">Influencer im Detail</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Klick auf Zeile für Detailansicht</p>
+                </div>
+              </div>
+              <InfluencerTable stats={stats} />
+            </div>
           </div>
-          <InfluencerTable stats={stats} />
+          <div>
+            <RecentOrdersFeed orders={filteredOrders} influencers={influencers} />
+          </div>
         </section>
 
-        {/* Footer note */}
-        <footer className="text-center text-xs text-gray-300 py-4">
-          Attributionsmodell: Discount Code → Shopify Order → Influencer ID ·
-          Retourenwert basiert auf vollständig retournierten Bestellungen ·
-          Partnerschaftskosten = monatliche Fixkosten
-        </footer>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

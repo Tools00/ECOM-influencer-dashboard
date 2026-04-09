@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { InfluencerStats } from "@/lib/types";
 import { PlatformBadge } from "./PlatformBadge";
 import clsx from "clsx";
-import { ArrowUpDown, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowUpDown, TrendingUp, TrendingDown, ChevronRight } from "lucide-react";
 
 type SortKey = keyof Pick<
   InfluencerStats,
-  "gross_revenue" | "net_revenue" | "return_rate" | "profit" | "roi" | "total_orders"
+  "gross_revenue" | "net_revenue" | "return_rate" | "profit" | "roi" | "total_orders" | "aov" | "cost_per_order"
 >;
 
 function fmt(n: number) {
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function InfluencerTable({ stats }: Props) {
+  const router = useRouter();
   const [sortKey, setSortKey] = useState<SortKey>("profit");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -54,37 +56,45 @@ export function InfluencerTable({ stats }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
+    <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-gray-50 text-gray-500 font-medium text-left">
-            <th className="px-4 py-3">Influencer</th>
+          <tr className="bg-gray-50 text-gray-500 font-medium text-left text-xs">
+            <th className="px-4 py-3 rounded-tl-xl">Influencer</th>
             <th className="px-4 py-3"><SortBtn k="total_orders" label="Bestellungen" /></th>
-            <th className="px-4 py-3"><SortBtn k="gross_revenue" label="Brutto-Umsatz" /></th>
-            <th className="px-4 py-3"><SortBtn k="return_rate" label="Retourenquote" /></th>
-            <th className="px-4 py-3"><SortBtn k="net_revenue" label="Netto-Umsatz" /></th>
-            <th className="px-4 py-3">Partnerkosten</th>
+            <th className="px-4 py-3"><SortBtn k="gross_revenue" label="Brutto" /></th>
+            <th className="px-4 py-3"><SortBtn k="return_rate" label="Retouren" /></th>
+            <th className="px-4 py-3"><SortBtn k="net_revenue" label="Netto" /></th>
+            <th className="px-4 py-3"><SortBtn k="aov" label="Ø Bestellwert" /></th>
+            <th className="px-4 py-3"><SortBtn k="cost_per_order" label="Kosten/Order" /></th>
             <th className="px-4 py-3"><SortBtn k="profit" label="Profit" /></th>
-            <th className="px-4 py-3"><SortBtn k="roi" label="ROI" /></th>
-            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3 rounded-tr-xl"><SortBtn k="roi" label="ROI" /></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {sorted.map((s) => (
-            <tr key={s.influencer.id} className="bg-white hover:bg-gray-50 transition-colors">
+            <tr
+              key={s.influencer.id}
+              onClick={() => router.push(`/influencer/${s.influencer.id}`)}
+              className="bg-white hover:bg-emerald-50 transition-colors cursor-pointer group"
+            >
               <td className="px-4 py-3">
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-gray-900">{s.influencer.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400 text-xs">{s.influencer.handle}</span>
-                    <PlatformBadge platform={s.influencer.platform} />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
+                    {s.influencer.name.charAt(0)}
                   </div>
-                  <span className="text-xs text-gray-400">{s.influencer.niche}</span>
+                  <div>
+                    <div className="font-semibold text-gray-900 text-xs">{s.influencer.name}</div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-gray-400 text-xs">{s.influencer.handle}</span>
+                      <PlatformBadge platform={s.influencer.platform} />
+                    </div>
+                  </div>
                 </div>
               </td>
-              <td className="px-4 py-3 text-gray-700">{s.total_orders}</td>
-              <td className="px-4 py-3 text-gray-700">{fmt(s.gross_revenue)}</td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 text-gray-700 text-xs">{s.total_orders}</td>
+              <td className="px-4 py-3 text-gray-700 text-xs">{fmt(s.gross_revenue)}</td>
+              <td className="px-4 py-3 text-xs">
                 <span
                   className={clsx(
                     "font-medium",
@@ -93,30 +103,29 @@ export function InfluencerTable({ stats }: Props) {
                 >
                   {fmtPct(s.return_rate)}
                 </span>
-                <span className="text-gray-400 text-xs ml-1">({s.return_count} Ret.)</span>
+                <span className="text-gray-400 ml-1">({s.return_count})</span>
               </td>
-              <td className="px-4 py-3 font-medium text-gray-900">{fmt(s.net_revenue)}</td>
-              <td className="px-4 py-3 text-gray-500">{fmt(s.monthly_cost)}</td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 font-medium text-gray-900 text-xs">{fmt(s.net_revenue)}</td>
+              <td className="px-4 py-3 text-gray-600 text-xs">{fmt(s.aov)}</td>
+              <td className="px-4 py-3 text-gray-600 text-xs">{fmt(s.cost_per_order)}</td>
+              <td className="px-4 py-3 text-xs">
                 <span className={clsx("font-semibold", s.profit >= 0 ? "text-emerald-700" : "text-red-600")}>
                   {fmt(s.profit)}
                 </span>
               </td>
-              <td className="px-4 py-3">
-                <span className={clsx("font-semibold", s.roi >= 0 ? "text-emerald-700" : "text-red-600")}>
-                  {fmtPct(s.roi)}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                {s.profit >= 0 ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full">
-                    <TrendingUp size={11} /> Profitabel
+              <td className="px-4 py-3 text-xs">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={clsx(
+                    "inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-xs",
+                    s.roi >= 50 ? "bg-emerald-100 text-emerald-700" :
+                    s.roi >= 0 ? "bg-gray-100 text-gray-600" :
+                    "bg-red-50 text-red-600"
+                  )}>
+                    {s.profit >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                    {fmtPct(s.roi)}
                   </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">
-                    <TrendingDown size={11} /> Verlust
-                  </span>
-                )}
+                  <ChevronRight size={14} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
+                </div>
               </td>
             </tr>
           ))}
