@@ -1,5 +1,7 @@
 export type Platform = "instagram" | "tiktok" | "youtube";
 export type DateRange = "7d" | "30d" | "90d" | "all";
+export type OrderSource = "influencer" | "meta_ads" | "organic";
+export type ReturnType = "none" | "full" | "partial";
 
 // ─── Compensation Models ───────────────────────────────────────────────────
 
@@ -34,10 +36,11 @@ export interface Order {
   influencer_id: string;
   order_date: string;
   gross_value_eur: number;
-  is_returned: boolean;
-  return_value_eur: number;
+  return_type: ReturnType;
+  return_value_eur: number;   // 0 for "none", full gross for "full", partial amount for "partial"
   product_category: string;
   item_count: number;
+  order_source: OrderSource;
 }
 
 export interface InfluencerStats {
@@ -45,6 +48,8 @@ export interface InfluencerStats {
   total_orders: number;
   gross_revenue: number;
   return_count: number;
+  full_return_count: number;
+  partial_return_count: number;
   return_value: number;
   net_revenue: number;
   return_rate: number;

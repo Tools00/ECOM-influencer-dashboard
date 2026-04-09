@@ -1,4 +1,4 @@
-import { Influencer, InfluencerStats, Order, DashboardSummary, DateRange, DailyRevenue, CategoryRevenue, CampaignSummary, PeriodComparison, Compensation } from "./types";
+import { Influencer, InfluencerStats, Order, DashboardSummary, DateRange, DailyRevenue, CategoryRevenue, CampaignSummary, PeriodComparison, Compensation, OrderSource } from "./types";
 import { REFERENCE_DATE } from "./constants";
 
 // ─── Date filtering ────────────────────────────────────────────────────────
@@ -43,7 +43,9 @@ export function computeActualCost(compensation: Compensation, netRevenue: number
 export function computeInfluencerStats(influencer: Influencer, orders: Order[]): InfluencerStats {
   const inf = orders.filter((o) => o.influencer_id === influencer.id);
   const gross_revenue = inf.reduce((s, o) => s + o.gross_value_eur, 0);
-  const return_count = inf.filter((o) => o.is_returned).length;
+  const full_return_count = inf.filter((o) => o.return_type === "full").length;
+  const partial_return_count = inf.filter((o) => o.return_type === "partial").length;
+  const return_count = full_return_count + partial_return_count;
   const return_value = inf.reduce((s, o) => s + o.return_value_eur, 0);
   const net_revenue = gross_revenue - return_value;
   const return_rate = inf.length > 0 ? (return_count / inf.length) * 100 : 0;
@@ -59,6 +61,8 @@ export function computeInfluencerStats(influencer: Influencer, orders: Order[]):
     total_orders: inf.length,
     gross_revenue,
     return_count,
+    full_return_count,
+    partial_return_count,
     return_value,
     net_revenue,
     return_rate,
@@ -147,7 +151,7 @@ export function computeCategoryRevenue(orders: Order[]): CategoryRevenue[] {
     const e = map.get(o.product_category)!;
     e.revenue += o.gross_value_eur - o.return_value_eur;
     e.orders += 1;
-    if (o.is_returned) e.returns += 1;
+    if (o.return_type !== "none") e.returns += 1;
   }
   return Array.from(map.entries())
     .map(([category, v]) => ({
@@ -175,6 +179,28 @@ export function computeCampaignSummaries(stats: InfluencerStats[]): CampaignSumm
     total_profit: influencers.reduce((s, x) => s + x.profit, 0),
     avg_roi: influencers.length > 0 ? influencers.reduce((s, x) => s + x.roi, 0) / influencers.length : 0,
   }));
+}
+
+// ─── Attribution breakdown ────────────────────────────────────────────────
+
+export interface AttributionBreakdown {
+  influencer: { orders: number; net_revenue: number };
+  meta_ads: { orders: number; net_revenue: number };
+  organic: { orders: number; net_revenue: number };
+}
+
+export function computeAttributionBreakdown(orders: Order[]): AttributionBreakdown {
+  const result: AttributionBreakdown = {
+    influencer: { orders: 0, net_revenue: 0 },
+    meta_ads: { orders: 0, net_revenue: 0 },
+    organic: { orders: 0, net_revenue: 0 },
+  };
+  for (const o of orders) {
+    const net = o.gross_value_eur - o.return_value_eur;
+    result[o.order_source].orders += 1;
+    result[o.order_source].net_revenue += net;
+  }
+  return result;
 }
 
 // ─── Sparkline ─────────────────────────────────────────────────────────────

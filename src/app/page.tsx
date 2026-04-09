@@ -6,6 +6,7 @@ import {
   computePeriodComparison,
   computeDailyRevenue,
   computeCategoryRevenue,
+  computeAttributionBreakdown,
   filterOrdersByDateRange,
 } from "@/lib/analytics";
 import { DateRange } from "@/lib/types";
@@ -14,6 +15,7 @@ import { InfluencerTable } from "@/components/InfluencerTable";
 import { RevenueTrendChart } from "@/components/RevenueTrendChart";
 import { CategoryDonutChart } from "@/components/CategoryDonutChart";
 import { RecentOrdersFeed } from "@/components/RecentOrdersFeed";
+import { AttributionOverview } from "@/components/AttributionOverview";
 import { Header } from "@/components/layout/Header";
 import { DateRangeSelector } from "@/components/DateRangeSelector";
 import { formatEUR, formatPct } from "@/lib/formatters";
@@ -49,6 +51,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   const comparison = computePeriodComparison(influencers, allOrders, range);
   const dailyRevenue = computeDailyRevenue(filteredOrders);
   const categoryRevenue = computeCategoryRevenue(filteredOrders);
+  const attribution = computeAttributionBreakdown(filteredOrders);
 
   const { changes } = comparison;
 
@@ -129,7 +132,7 @@ export default async function DashboardPage({ searchParams }: Props) {
           </div>
         </section>
 
-        {/* Table + Recent Orders */}
+        {/* Table + Attribution + Recent Orders */}
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           <div className="xl:col-span-2">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
@@ -142,7 +145,8 @@ export default async function DashboardPage({ searchParams }: Props) {
               <InfluencerTable stats={stats} />
             </div>
           </div>
-          <div>
+          <div className="space-y-5">
+            <AttributionOverview attribution={attribution} />
             <RecentOrdersFeed orders={filteredOrders} influencers={influencers} />
           </div>
         </section>

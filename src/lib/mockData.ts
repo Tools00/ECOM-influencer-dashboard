@@ -1,4 +1,4 @@
-import { Influencer, Order } from "./types";
+import { Influencer, Order, OrderSource, ReturnType } from "./types";
 
 export const INFLUENCERS: Influencer[] = [
   {
@@ -80,24 +80,29 @@ export const INFLUENCERS: Influencer[] = [
 ];
 
 // Helper: deterministic order generation
+// returned: false → "none", true → "full", "partial" → "partial" (50% of value)
 function o(
   id: string,
   infId: string,
   date: string,
   value: number,
-  returned: boolean,
+  returned: boolean | "partial",
   category: string,
-  items: number = 1
+  items: number = 1,
+  source: OrderSource = "influencer"
 ): Order {
+  const return_type: ReturnType = returned === "partial" ? "partial" : returned ? "full" : "none";
+  const return_value_eur = returned === "partial" ? Math.round(value * 0.5 * 100) / 100 : returned ? value : 0;
   return {
     id,
     influencer_id: infId,
     order_date: date,
     gross_value_eur: value,
-    is_returned: returned,
-    return_value_eur: returned ? value : 0,
+    return_type,
+    return_value_eur,
     product_category: category,
     item_count: items,
+    order_source: source,
   };
 }
 
@@ -109,23 +114,23 @@ export const ORDERS: Order[] = [
   // Sophie Müller – Jan (8 orders)
   o("ord_j01", "inf_001", "2024-01-03", 89.99, false, "Kleidung"),
   o("ord_j02", "inf_001", "2024-01-06", 59.90, false, "Accessoires"),
-  o("ord_j03", "inf_001", "2024-01-10", 149.00, true, "Kleidung"),
+  o("ord_j03", "inf_001", "2024-01-10", 149.00, "partial", "Kleidung"),
   o("ord_j04", "inf_001", "2024-01-14", 79.90, false, "Schuhe"),
   o("ord_j05", "inf_001", "2024-01-18", 199.00, false, "Kleidung", 2),
-  o("ord_j06", "inf_001", "2024-01-22", 64.90, true, "Accessoires"),
+  o("ord_j06", "inf_001", "2024-01-22", 64.90, true, "Accessoires", 1, "meta_ads"),
   o("ord_j07", "inf_001", "2024-01-26", 119.00, false, "Kleidung"),
   o("ord_j08", "inf_001", "2024-01-30", 89.90, false, "Schuhe"),
 
   // Max Bauer – Jan (10 orders)
-  o("ord_j09", "inf_002", "2024-01-02", 49.99, false, "Sportswear"),
-  o("ord_j10", "inf_002", "2024-01-05", 34.99, false, "Supplements"),
+  o("ord_j09", "inf_002", "2024-01-02", 49.99, false, "Sportswear", 1, "meta_ads"),
+  o("ord_j10", "inf_002", "2024-01-05", 34.99, false, "Supplements", 1, "organic"),
   o("ord_j11", "inf_002", "2024-01-08", 69.90, false, "Sportswear"),
   o("ord_j12", "inf_002", "2024-01-11", 44.99, false, "Supplements"),
   o("ord_j13", "inf_002", "2024-01-14", 89.00, false, "Equipment"),
   o("ord_j14", "inf_002", "2024-01-17", 54.99, false, "Yoga"),
   o("ord_j15", "inf_002", "2024-01-20", 59.90, false, "Sportswear"),
   o("ord_j16", "inf_002", "2024-01-23", 39.99, false, "Supplements"),
-  o("ord_j17", "inf_002", "2024-01-26", 79.90, true, "Equipment"),
+  o("ord_j17", "inf_002", "2024-01-26", 79.90, "partial", "Equipment"),
   o("ord_j18", "inf_002", "2024-01-29", 44.99, false, "Yoga"),
 
   // Lisa Hoffmann – Jan (6 orders)
@@ -160,7 +165,7 @@ export const ORDERS: Order[] = [
   // Sophie Müller – Feb (12 orders)
   o("ord_f01", "inf_001", "2024-02-01", 109.00, false, "Kleidung"),
   o("ord_f02", "inf_001", "2024-02-03", 79.90, false, "Accessoires"),
-  o("ord_f03", "inf_001", "2024-02-06", 159.00, true, "Kleidung"),
+  o("ord_f03", "inf_001", "2024-02-06", 159.00, "partial", "Kleidung"),
   o("ord_f04", "inf_001", "2024-02-08", 89.99, false, "Schuhe"),
   o("ord_f05", "inf_001", "2024-02-10", 199.00, false, "Kleidung", 2),
   o("ord_f06", "inf_001", "2024-02-13", 69.90, false, "Accessoires"),
@@ -172,8 +177,8 @@ export const ORDERS: Order[] = [
   o("ord_f12", "inf_001", "2024-02-28", 94.90, false, "Accessoires"),
 
   // Max Bauer – Feb (15 orders)
-  o("ord_f13", "inf_002", "2024-02-01", 54.99, false, "Sportswear"),
-  o("ord_f14", "inf_002", "2024-02-03", 89.00, false, "Equipment"),
+  o("ord_f13", "inf_002", "2024-02-01", 54.99, false, "Sportswear", 1, "meta_ads"),
+  o("ord_f14", "inf_002", "2024-02-03", 89.00, false, "Equipment", 1, "meta_ads"),
   o("ord_f15", "inf_002", "2024-02-05", 44.99, false, "Supplements"),
   o("ord_f16", "inf_002", "2024-02-07", 69.90, false, "Sportswear"),
   o("ord_f17", "inf_002", "2024-02-09", 34.99, false, "Yoga"),
@@ -183,7 +188,7 @@ export const ORDERS: Order[] = [
   o("ord_f21", "inf_002", "2024-02-17", 44.99, false, "Supplements"),
   o("ord_f22", "inf_002", "2024-02-19", 64.90, false, "Sportswear"),
   o("ord_f23", "inf_002", "2024-02-21", 54.99, false, "Yoga"),
-  o("ord_f24", "inf_002", "2024-02-23", 89.00, true, "Equipment"),
+  o("ord_f24", "inf_002", "2024-02-23", 89.00, "partial", "Equipment"),
   o("ord_f25", "inf_002", "2024-02-25", 39.99, false, "Supplements"),
   o("ord_f26", "inf_002", "2024-02-27", 69.90, false, "Sportswear"),
   o("ord_f27", "inf_002", "2024-02-28", 49.99, false, "Supplements"),
@@ -245,8 +250,8 @@ export const ORDERS: Order[] = [
   o("ord_018", "inf_001", "2024-03-31", 119.90, false, "Schuhe"),
 
   // Max Bauer – Mar (22 orders)
-  o("ord_019", "inf_002", "2024-03-01", 49.99, false, "Sportswear"),
-  o("ord_020", "inf_002", "2024-03-02", 89.00, false, "Supplements"),
+  o("ord_019", "inf_002", "2024-03-01", 49.99, false, "Sportswear", 1, "meta_ads"),
+  o("ord_020", "inf_002", "2024-03-02", 89.00, false, "Supplements", 1, "organic"),
   o("ord_021", "inf_002", "2024-03-04", 59.90, false, "Sportswear"),
   o("ord_022", "inf_002", "2024-03-05", 44.99, false, "Supplements"),
   o("ord_023", "inf_002", "2024-03-06", 79.90, true, "Sportswear"),
@@ -285,7 +290,7 @@ export const ORDERS: Order[] = [
   // Thomas Wagner – Mar (10 orders)
   o("ord_053", "inf_004", "2024-03-02", 349.00, false, "Smartphones"),
   o("ord_054", "inf_004", "2024-03-05", 189.00, false, "Zubehör"),
-  o("ord_055", "inf_004", "2024-03-08", 499.00, true, "Laptops"),
+  o("ord_055", "inf_004", "2024-03-08", 499.00, "partial", "Laptops"),
   o("ord_056", "inf_004", "2024-03-11", 279.00, false, "Smartphones"),
   o("ord_057", "inf_004", "2024-03-15", 149.00, false, "Audio"),
   o("ord_058", "inf_004", "2024-03-18", 599.00, true, "Laptops"),
@@ -293,6 +298,21 @@ export const ORDERS: Order[] = [
   o("ord_060", "inf_004", "2024-03-24", 399.00, false, "Laptops"),
   o("ord_061", "inf_004", "2024-03-27", 189.00, false, "Zubehör"),
   o("ord_062", "inf_004", "2024-03-30", 319.00, false, "Audio"),
+
+  // ── Meta Ads Overlap März (gleiche Codes, anderer Kanal) ──────────────────
+  // Sophie SOPHIE10 via Meta Ads
+  o("ord_m01", "inf_001", "2024-03-08",  94.90, false, "Kleidung",    1, "meta_ads"),
+  o("ord_m02", "inf_001", "2024-03-16", 149.00, false, "Kleidung",    2, "meta_ads"),
+  o("ord_m03", "inf_001", "2024-03-25",  79.90, false, "Accessoires", 1, "meta_ads"),
+  // Max MAX15 via Meta Ads
+  o("ord_m04", "inf_002", "2024-03-10",  54.99, false, "Sportswear",  1, "meta_ads"),
+  o("ord_m05", "inf_002", "2024-03-20",  44.99, false, "Supplements", 1, "meta_ads"),
+  // Anna ANNA10 via Meta Ads
+  o("ord_m06", "inf_005", "2024-03-14",  89.00, false, "Skincare",    1, "meta_ads"),
+  o("ord_m07", "inf_005", "2024-03-23",  64.90, false, "Make-up",     1, "meta_ads"),
+  // Organic März (direkt / ohne Code-Zuweisung)
+  o("ord_m08", "inf_002", "2024-03-17",  34.99, false, "Yoga",        1, "organic"),
+  o("ord_m09", "inf_001", "2024-03-22",  59.90, false, "Schuhe",      1, "organic"),
 
   // Anna Schmidt – Mar (16 orders)
   o("ord_063", "inf_005", "2024-03-01", 69.90, false, "Skincare"),

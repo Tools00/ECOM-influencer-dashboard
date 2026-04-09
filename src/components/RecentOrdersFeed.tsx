@@ -43,11 +43,14 @@ export function RecentOrdersFeed({ orders, influencers }: Props) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {inf && <PlatformBadge platform={inf.platform} />}
-                <span className={clsx("text-xs font-semibold", order.is_returned ? "text-red-500 line-through" : "text-gray-800")}>
+                <span className={clsx("text-xs font-semibold", order.return_type === "full" ? "text-red-500 line-through" : order.return_type === "partial" ? "text-orange-500" : "text-gray-800")}>
                   {formatEUR(order.gross_value_eur)}
                 </span>
-                {order.is_returned && (
+                {order.return_type === "full" && (
                   <span className="text-xs text-red-400 bg-red-50 px-1.5 py-0.5 rounded">R</span>
+                )}
+                {order.return_type === "partial" && (
+                  <span className="text-xs text-orange-400 bg-orange-50 px-1.5 py-0.5 rounded">TR</span>
                 )}
               </div>
             </div>

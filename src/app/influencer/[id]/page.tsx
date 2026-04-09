@@ -5,9 +5,11 @@ import {
   computeDailyRevenue,
   computeCategoryRevenue,
   computeSparklineData,
+  computeAttributionBreakdown,
 } from "@/lib/analytics";
 import { Header } from "@/components/layout/Header";
 import { InfluencerDetailClient } from "@/components/InfluencerDetailClient";
+import { AttributionAlert } from "@/components/AttributionAlert";
 import { InfluencerOrdersTable } from "@/components/InfluencerOrdersTable";
 import { InfluencerCategoryBreakdown } from "@/components/InfluencerCategoryBreakdown";
 import { RevenueTrendChart } from "@/components/RevenueTrendChart";
@@ -33,6 +35,7 @@ export default async function InfluencerDetailPage({ params }: Props) {
 
   const infOrders = orders.filter((o) => o.influencer_id === id);
   const stats = computeInfluencerStats(influencer, orders);
+  const attribution = computeAttributionBreakdown(infOrders);
   const dailyRevenue = computeDailyRevenue(infOrders);
   const categoryRevenue = computeCategoryRevenue(infOrders);
   const sparkline = computeSparklineData(orders, id, 30);
@@ -55,6 +58,13 @@ export default async function InfluencerDetailPage({ params }: Props) {
         {/* Profile + inline editor (client) */}
         <InfluencerDetailClient stats={stats} />
 
+        {/* Attribution Alert */}
+        <AttributionAlert
+          attribution={attribution}
+          discountCode={influencer.discount_code}
+          totalNetRevenue={stats.net_revenue}
+        />
+
         {/* KPI Cards */}
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <KPICard
@@ -69,7 +79,14 @@ export default async function InfluencerDetailPage({ params }: Props) {
           <KPICard
             label="Bestellungen"
             value={String(stats.total_orders)}
-            subtext={`${stats.return_count} retourniert`}
+            subtext={
+              stats.return_count > 0
+                ? [
+                    stats.full_return_count > 0 ? `${stats.full_return_count} voll` : null,
+                    stats.partial_return_count > 0 ? `${stats.partial_return_count} teilw.` : null,
+                  ].filter(Boolean).join(" · ") + " retourniert"
+                : "Keine Retouren"
+            }
             icon={<ShoppingBag size={16} />}
             trend="neutral"
           />
