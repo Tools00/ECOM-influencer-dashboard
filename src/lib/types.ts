@@ -1,6 +1,22 @@
 export type Platform = "instagram" | "tiktok" | "youtube";
 export type DateRange = "7d" | "30d" | "90d" | "all";
 
+// ─── Compensation Models ───────────────────────────────────────────────────
+
+export type CompensationType = "fixed" | "commission" | "hybrid" | "per_post" | "barter";
+export type PaymentInterval = "monthly" | "weekly" | "biweekly";
+
+export interface Compensation {
+  type: CompensationType;
+  interval?: PaymentInterval;    // for: fixed, hybrid
+  fixed_eur?: number;            // for: fixed, hybrid, barter (product value)
+  commission_pct?: number;       // for: commission, hybrid (0–100)
+  per_post_eur?: number;         // for: per_post
+  posts_count?: number;          // for: per_post (posts delivered in period)
+}
+
+// ─── Core entities ─────────────────────────────────────────────────────────
+
 export interface Influencer {
   id: string;
   name: string;
@@ -8,9 +24,9 @@ export interface Influencer {
   platform: Platform;
   niche: string;
   discount_code: string;
-  monthly_cost_eur: number;
   followers: number;
   campaign_name: string;
+  compensation: Compensation;
 }
 
 export interface Order {
@@ -32,7 +48,7 @@ export interface InfluencerStats {
   return_value: number;
   net_revenue: number;
   return_rate: number;
-  monthly_cost: number;
+  actual_cost: number;           // computed from compensation model
   profit: number;
   roi: number;
   aov: number;

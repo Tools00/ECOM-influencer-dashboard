@@ -1,4 +1,4 @@
-import { Influencer, InfluencerStats, Order, DashboardSummary, DateRange, DailyRevenue, CategoryRevenue, CampaignSummary, PeriodComparison } from "./types";
+import { Influencer, InfluencerStats, Order, DashboardSummary, DateRange, DailyRevenue, CategoryRevenue, CampaignSummary, PeriodComparison, Compensation } from "./types";
 import { REFERENCE_DATE } from "./constants";
 
 // ─── Date filtering ────────────────────────────────────────────────────────
@@ -21,6 +21,23 @@ function filterOrdersByWindow(orders: Order[], endDate: Date, days: number): Ord
   });
 }
 
+// ─── Compensation cost calculation ────────────────────────────────────────
+
+export function computeActualCost(compensation: Compensation, netRevenue: number): number {
+  switch (compensation.type) {
+    case "fixed":
+      return compensation.fixed_eur ?? 0;
+    case "commission":
+      return (netRevenue * (compensation.commission_pct ?? 0)) / 100;
+    case "hybrid":
+      return (compensation.fixed_eur ?? 0) + (netRevenue * (compensation.commission_pct ?? 0)) / 100;
+    case "per_post":
+      return (compensation.per_post_eur ?? 0) * (compensation.posts_count ?? 0);
+    case "barter":
+      return compensation.fixed_eur ?? 0;
+  }
+}
+
 // ─── Core stats ────────────────────────────────────────────────────────────
 
 export function computeInfluencerStats(influencer: Influencer, orders: Order[]): InfluencerStats {
@@ -30,10 +47,11 @@ export function computeInfluencerStats(influencer: Influencer, orders: Order[]):
   const return_value = inf.reduce((s, o) => s + o.return_value_eur, 0);
   const net_revenue = gross_revenue - return_value;
   const return_rate = inf.length > 0 ? (return_count / inf.length) * 100 : 0;
-  const profit = net_revenue - influencer.monthly_cost_eur;
-  const roi = influencer.monthly_cost_eur > 0 ? (profit / influencer.monthly_cost_eur) * 100 : 0;
+  const actual_cost = computeActualCost(influencer.compensation, net_revenue);
+  const profit = net_revenue - actual_cost;
+  const roi = actual_cost > 0 ? (profit / actual_cost) * 100 : net_revenue > 0 ? 100 : 0;
   const aov = inf.length > 0 ? gross_revenue / inf.length : 0;
-  const cost_per_order = inf.length > 0 ? influencer.monthly_cost_eur / inf.length : 0;
+  const cost_per_order = inf.length > 0 ? actual_cost / inf.length : 0;
   const revenue_per_follower = influencer.followers > 0 ? net_revenue / influencer.followers : 0;
 
   return {
@@ -44,7 +62,7 @@ export function computeInfluencerStats(influencer: Influencer, orders: Order[]):
     return_value,
     net_revenue,
     return_rate,
-    monthly_cost: influencer.monthly_cost_eur,
+    actual_cost,
     profit,
     roi,
     aov,

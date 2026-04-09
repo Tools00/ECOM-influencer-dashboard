@@ -1,7 +1,9 @@
 import { InfluencerStats } from "@/lib/types";
 import { PlatformBadge } from "./PlatformBadge";
-import { formatEUR, formatCompact } from "@/lib/formatters";
-import { Users, Tag, Briefcase, DollarSign } from "lucide-react";
+import { CompensationBadge } from "./CompensationBadge";
+import { formatEUR, formatCompact, formatCompensation } from "@/lib/formatters";
+import { computeActualCost } from "@/lib/analytics";
+import { Users, Tag, Briefcase, TrendingUp } from "lucide-react";
 import clsx from "clsx";
 
 interface Props {
@@ -53,13 +55,44 @@ export function InfluencerProfileCard({ stats }: Props) {
               <span>{influencer.campaign_name}</span>
             </div>
             <div className="flex items-center gap-1.5 text-sm text-gray-600">
-              <DollarSign size={14} className="text-gray-400 shrink-0" />
-              <span>{formatEUR(influencer.monthly_cost_eur)}/Monat</span>
+              <TrendingUp size={14} className="text-gray-400 shrink-0" />
+              <span>ROI {stats.roi.toFixed(0)}%</span>
             </div>
           </div>
 
-          <div className="mt-2 text-xs text-gray-400 bg-gray-50 inline-block px-2 py-1 rounded-lg">
-            {influencer.niche}
+          {/* Niche + Compensation */}
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
+            <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
+              {influencer.niche}
+            </span>
+            <CompensationBadge compensation={influencer.compensation} showDetail />
+          </div>
+
+          {/* Compensation detail box */}
+          <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <div className="text-xs text-gray-400">Vergütungsmodell</div>
+                <div className="text-xs font-semibold text-gray-700 mt-0.5 capitalize">
+                  {formatCompensation(influencer.compensation)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-400">Tatsächliche Kosten</div>
+                <div className="text-xs font-semibold text-gray-700 mt-0.5">
+                  {formatEUR(stats.actual_cost)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-400">Profit</div>
+                <div className={clsx(
+                  "text-xs font-semibold mt-0.5",
+                  stats.profit >= 0 ? "text-emerald-700" : "text-red-600"
+                )}>
+                  {formatEUR(stats.profit)}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -8,9 +8,13 @@ export const INFLUENCERS: Influencer[] = [
     platform: "instagram",
     niche: "Fashion & Lifestyle",
     discount_code: "SOPHIE10",
-    monthly_cost_eur: 500,
     followers: 85000,
     campaign_name: "Frühjahrskampagne Q1",
+    compensation: {
+      type: "fixed",
+      interval: "monthly",
+      fixed_eur: 500,
+    },
   },
   {
     id: "inf_002",
@@ -19,9 +23,12 @@ export const INFLUENCERS: Influencer[] = [
     platform: "tiktok",
     niche: "Fitness & Sport",
     discount_code: "MAX15",
-    monthly_cost_eur: 300,
     followers: 220000,
     campaign_name: "Fitness Launch",
+    compensation: {
+      type: "commission",
+      commission_pct: 12,
+    },
   },
   {
     id: "inf_003",
@@ -30,9 +37,14 @@ export const INFLUENCERS: Influencer[] = [
     platform: "instagram",
     niche: "Food & Kochen",
     discount_code: "LISA10",
-    monthly_cost_eur: 400,
     followers: 47000,
     campaign_name: "Foodie Collab",
+    compensation: {
+      type: "hybrid",
+      interval: "monthly",
+      fixed_eur: 200,
+      commission_pct: 8,
+    },
   },
   {
     id: "inf_004",
@@ -41,9 +53,13 @@ export const INFLUENCERS: Influencer[] = [
     platform: "youtube",
     niche: "Tech & Gadgets",
     discount_code: "TOM20",
-    monthly_cost_eur: 800,
     followers: 125000,
     campaign_name: "Tech Review Sprint",
+    compensation: {
+      type: "per_post",
+      per_post_eur: 300,
+      posts_count: 3,
+    },
   },
   {
     id: "inf_005",
@@ -52,9 +68,14 @@ export const INFLUENCERS: Influencer[] = [
     platform: "instagram",
     niche: "Beauty & Skincare",
     discount_code: "ANNA10",
-    monthly_cost_eur: 600,
     followers: 183000,
     campaign_name: "Frühjahrskampagne Q1",
+    compensation: {
+      type: "hybrid",
+      interval: "monthly",
+      fixed_eur: 300,
+      commission_pct: 5,
+    },
   },
 ];
 

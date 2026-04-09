@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { InfluencerStats } from "@/lib/types";
 import { PlatformBadge } from "./PlatformBadge";
+import { CompensationBadge } from "./CompensationBadge";
 import clsx from "clsx";
 import { ArrowUpDown, TrendingUp, TrendingDown, ChevronRight } from "lucide-react";
 
 type SortKey = keyof Pick<
   InfluencerStats,
-  "gross_revenue" | "net_revenue" | "return_rate" | "profit" | "roi" | "total_orders" | "aov" | "cost_per_order"
+  "gross_revenue" | "net_revenue" | "return_rate" | "profit" | "roi" | "total_orders" | "aov" | "cost_per_order" | "actual_cost"
 >;
 
 function fmt(n: number) {
@@ -66,7 +67,7 @@ export function InfluencerTable({ stats }: Props) {
             <th className="px-4 py-3"><SortBtn k="return_rate" label="Retouren" /></th>
             <th className="px-4 py-3"><SortBtn k="net_revenue" label="Netto" /></th>
             <th className="px-4 py-3"><SortBtn k="aov" label="Ø Bestellwert" /></th>
-            <th className="px-4 py-3"><SortBtn k="cost_per_order" label="Kosten/Order" /></th>
+            <th className="px-4 py-3"><SortBtn k="actual_cost" label="Kosten" /></th>
             <th className="px-4 py-3"><SortBtn k="profit" label="Profit" /></th>
             <th className="px-4 py-3 rounded-tr-xl"><SortBtn k="roi" label="ROI" /></th>
           </tr>
@@ -107,7 +108,10 @@ export function InfluencerTable({ stats }: Props) {
               </td>
               <td className="px-4 py-3 font-medium text-gray-900 text-xs">{fmt(s.net_revenue)}</td>
               <td className="px-4 py-3 text-gray-600 text-xs">{fmt(s.aov)}</td>
-              <td className="px-4 py-3 text-gray-600 text-xs">{fmt(s.cost_per_order)}</td>
+              <td className="px-4 py-3 text-xs">
+                <div>{fmt(s.actual_cost)}</div>
+                <CompensationBadge compensation={s.influencer.compensation} />
+              </td>
               <td className="px-4 py-3 text-xs">
                 <span className={clsx("font-semibold", s.profit >= 0 ? "text-emerald-700" : "text-red-600")}>
                   {fmt(s.profit)}

@@ -1,6 +1,7 @@
 "use client";
 
 import { InfluencerStats } from "@/lib/types";
+import { formatCompensation } from "@/lib/formatters";
 import { Download } from "lucide-react";
 
 interface Props {
@@ -11,8 +12,9 @@ interface Props {
 function toCSV(stats: InfluencerStats[]): string {
   const headers = [
     "Name", "Handle", "Platform", "Nische", "Kampagne",
+    "Vergütungsmodell", "Vergütung (Detail)",
     "Bestellungen", "Brutto (EUR)", "Retouren", "Retourenquote (%)",
-    "Netto (EUR)", "Ø Bestellwert (EUR)", "Kosten (EUR)",
+    "Netto (EUR)", "Ø Bestellwert (EUR)", "Tatsächliche Kosten (EUR)",
     "Kosten/Order (EUR)", "Profit (EUR)", "ROI (%)",
   ];
 
@@ -22,13 +24,15 @@ function toCSV(stats: InfluencerStats[]): string {
     s.influencer.platform,
     s.influencer.niche,
     s.influencer.campaign_name,
+    s.influencer.compensation.type,
+    formatCompensation(s.influencer.compensation),
     s.total_orders,
     s.gross_revenue.toFixed(2),
     s.return_count,
     s.return_rate.toFixed(1),
     s.net_revenue.toFixed(2),
     s.aov.toFixed(2),
-    s.monthly_cost.toFixed(2),
+    s.actual_cost.toFixed(2),
     s.cost_per_order.toFixed(2),
     s.profit.toFixed(2),
     s.roi.toFixed(1),

@@ -37,3 +37,19 @@ export function formatCompact(n: number): string {
   if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k`;
   return String(n);
 }
+
+export function formatCompensation(c: import("./types").Compensation): string {
+  const interval = c.interval === "weekly" ? "Woche" : c.interval === "biweekly" ? "2 Wo." : "Monat";
+  switch (c.type) {
+    case "fixed":
+      return `${formatEUR(c.fixed_eur ?? 0)} / ${interval}`;
+    case "commission":
+      return `${c.commission_pct}% Provision`;
+    case "hybrid":
+      return `${formatEUR(c.fixed_eur ?? 0)} + ${c.commission_pct}% / ${interval}`;
+    case "per_post":
+      return `${formatEUR(c.per_post_eur ?? 0)} / Post`;
+    case "barter":
+      return `Barter · ${formatEUR(c.fixed_eur ?? 0)} Warenwert`;
+  }
+}
