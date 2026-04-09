@@ -7,7 +7,7 @@ import {
   computeSparklineData,
 } from "@/lib/analytics";
 import { Header } from "@/components/layout/Header";
-import { InfluencerProfileCard } from "@/components/InfluencerProfileCard";
+import { InfluencerDetailClient } from "@/components/InfluencerDetailClient";
 import { InfluencerOrdersTable } from "@/components/InfluencerOrdersTable";
 import { InfluencerCategoryBreakdown } from "@/components/InfluencerCategoryBreakdown";
 import { RevenueTrendChart } from "@/components/RevenueTrendChart";
@@ -52,8 +52,8 @@ export default async function InfluencerDetailPage({ params }: Props) {
       </Header>
 
       <main className="flex-1 overflow-y-auto bg-gray-50 px-6 py-6 space-y-5">
-        {/* Profile card */}
-        <InfluencerProfileCard stats={stats} />
+        {/* Profile + inline editor (client) */}
+        <InfluencerDetailClient stats={stats} />
 
         {/* KPI Cards */}
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
