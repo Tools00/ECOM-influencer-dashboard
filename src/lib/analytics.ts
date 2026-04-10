@@ -216,6 +216,40 @@ export function computeAttributionBreakdown(orders: Order[]): AttributionBreakdo
   return result;
 }
 
+// ─── Attribution Risk Score ───────────────────────────────────────────────
+
+export type AttributionRisk = "none" | "low" | "high";
+
+export interface AttributionRiskResult {
+  risk: AttributionRisk;
+  overlap_pct: number;               // Anteil Meta-Ads-Orders an Gesamt
+  conservative_revenue: number;      // 0% Meta Ads dem Influencer angerechnet
+  neutral_revenue: number;           // 50% Meta Ads dem Influencer angerechnet
+  liberal_revenue: number;           // 100% Meta Ads dem Influencer angerechnet
+}
+
+export function computeAttributionRisk(
+  breakdown: AttributionBreakdown
+): AttributionRiskResult {
+  const total = breakdown.influencer.orders + breakdown.meta_ads.orders + breakdown.organic.orders;
+  const overlap_pct = total > 0 ? (breakdown.meta_ads.orders / total) * 100 : 0;
+
+  const risk: AttributionRisk =
+    overlap_pct === 0 ? "none" :
+    overlap_pct < 20  ? "low"  : "high";
+
+  const inf_net = breakdown.influencer.net_revenue;
+  const meta_net = breakdown.meta_ads.net_revenue;
+
+  return {
+    risk,
+    overlap_pct,
+    conservative_revenue: inf_net,
+    neutral_revenue:      inf_net + meta_net * 0.5,
+    liberal_revenue:      inf_net + meta_net,
+  };
+}
+
 // ─── Total net revenue sparkline (lückenlose Tagesserie) ──────────────────
 
 export function computeTotalNetSparkline(orders: Order[], range: DateRange): number[] {
