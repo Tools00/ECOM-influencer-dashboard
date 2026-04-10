@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchInfluencers, fetchOrders } from "@/lib/supabase";
+import { fetchInfluencers, fetchOrders, setInfluencerActive } from "@/lib/supabase";
 import {
   computeInfluencerStats,
   computeDailyRevenue,
@@ -36,4 +36,24 @@ export async function GET(
     categories,
     sparkline,
   });
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const body = await req.json() as { is_active?: boolean };
+
+  if (typeof body.is_active !== "boolean") {
+    return NextResponse.json({ error: "is_active (boolean) fehlt" }, { status: 400 });
+  }
+
+  try {
+    await setInfluencerActive(id, body.is_active);
+    return NextResponse.json({ success: true, influencer_id: id, is_active: body.is_active });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

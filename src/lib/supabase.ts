@@ -137,6 +137,67 @@ export async function fetchOrders(): Promise<Order[]> {
   return parsed.data;
 }
 
+// ─── Influencer erstellen ──────────────────────────────────
+
+export async function createInfluencer(
+  influencer: Omit<Influencer, "id"> & { id?: string }
+): Promise<Influencer> {
+  if (useMock || !supabase) {
+    throw new Error("createInfluencer nicht im Mock-Modus verfügbar");
+  }
+
+  const id = influencer.id ?? `inf_${crypto.randomUUID().slice(0, 8)}`;
+  const { compensation } = influencer;
+
+  const row = {
+    id,
+    name:                influencer.name,
+    handle:              influencer.handle,
+    platform:            influencer.platform,
+    niche:               influencer.niche,
+    discount_code:       influencer.discount_code,
+    followers:           influencer.followers,
+    campaign_name:       influencer.campaign_name,
+    is_active:           influencer.is_active ?? true,
+    contract_start_date: influencer.contract_start_date ?? null,
+    comp_type:           compensation.type,
+    comp_interval:       compensation.interval ?? null,
+    comp_fixed_eur:      compensation.fixed_eur ?? null,
+    comp_commission_pct: compensation.commission_pct ?? null,
+    comp_per_post_eur:   compensation.per_post_eur ?? null,
+    comp_posts_count:    compensation.posts_count ?? null,
+    comp_start_date:     compensation.start_date ?? null,
+  };
+
+  const { data, error } = await supabase
+    .from("influencers")
+    .insert(row)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(`Supabase createInfluencer: ${error.message}`);
+
+  const parsed = InfluencerRowSchema.safeParse(data);
+  if (!parsed.success) throw new Error("Ungültige Daten nach Insert (influencer)");
+  return parsed.data;
+}
+
+// ─── Influencer aktivieren / deaktivieren ──────────────────
+
+export async function setInfluencerActive(
+  influencerId: string,
+  is_active: boolean
+): Promise<void> {
+  if (useMock || !supabase) return;
+
+  const { error } = await supabase
+    .from("influencers")
+    .update({ is_active })
+    .eq("id", influencerId);
+
+  if (error) throw new Error(`Supabase setInfluencerActive: ${error.message}`);
+}
+
 // ─── Compensation Update (für CompensationEditor) ──────────
 
 export async function updateCompensation(

@@ -57,4 +57,8 @@ export const CHART_COLORS = {
   ],
 } as const;
 
-export const REFERENCE_DATE = "2024-03-31";
+/** Fixpunkt für Mock-Daten (Jan–März 2024) */
+export const REFERENCE_DATE_MOCK = "2024-03-31";
+
+/** Aktuelles Datum — wird für Live-Daten als Referenz verwendet */
+export const REFERENCE_DATE = new Date().toISOString().split("T")[0];

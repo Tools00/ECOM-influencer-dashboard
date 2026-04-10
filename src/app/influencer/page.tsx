@@ -3,6 +3,7 @@ import { computeInfluencerStats, computeSparklineData } from "@/lib/analytics";
 import { Header } from "@/components/layout/Header";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { CSVExportButton } from "@/components/CSVExportButton";
+import { NewInfluencerButton } from "@/components/NewInfluencerModal";
 import { KPICard } from "@/components/KPICard";
 import { formatEUR, formatPct, formatCompact } from "@/lib/formatters";
 import Link from "next/link";
@@ -22,7 +23,10 @@ export default async function InfluencerListPage() {
     <div className="flex flex-col flex-1 overflow-hidden">
       <Header>
         <h1 className="text-sm font-semibold text-gray-800">Influencer</h1>
-        <CSVExportButton stats={stats} />
+        <div className="flex items-center gap-2">
+          <NewInfluencerButton />
+          <CSVExportButton stats={stats} />
+        </div>
       </Header>
 
       <main className="flex-1 overflow-y-auto bg-gray-50 px-6 py-6">
