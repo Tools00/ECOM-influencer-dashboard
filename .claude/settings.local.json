@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git -C \"/Users/abed.qadi/projects/Leon Ruddat Claude E-Commerce DACH/influencer-dashboard\" log --oneline -8)",
+      "Bash(npx vercel:*)",
+      "Bash(supabase --version)",
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)"
+    ]
+  }
+}

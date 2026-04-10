@@ -7,6 +7,7 @@ import {
   computeDailyRevenue,
   computeCategoryRevenue,
   computeAttributionBreakdown,
+  computeTotalNetSparkline,
   filterOrdersByDateRange,
 } from "@/lib/analytics";
 import { DateRange } from "@/lib/types";
@@ -52,6 +53,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   const dailyRevenue = computeDailyRevenue(filteredOrders);
   const categoryRevenue = computeCategoryRevenue(filteredOrders);
   const attribution = computeAttributionBreakdown(filteredOrders);
+  const netSparkline = computeTotalNetSparkline(filteredOrders, range);
 
   const { changes } = comparison;
 
@@ -75,7 +77,7 @@ export default async function DashboardPage({ searchParams }: Props) {
             icon={<Euro size={16} />}
             trend={changes.revenue_change_pct >= 0 ? "up" : "down"}
             trendPct={changes.revenue_change_pct}
-            sparklineData={dailyRevenue.map((d) => d.net)}
+            sparklineData={netSparkline}
             highlight
           />
           <KPICard

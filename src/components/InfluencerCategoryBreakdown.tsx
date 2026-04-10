@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CategoryRevenue } from "@/lib/types";
-import { CHART_COLORS, DACH_RETURN_BENCHMARKS } from "@/lib/constants";
+import { CHART_COLORS } from "@/lib/constants";
 
 interface Props {
   data: CategoryRevenue[];
@@ -37,7 +37,7 @@ export function InfluencerCategoryBreakdown({ data }: Props) {
     name: d.category,
     Umsatz: Math.round(d.revenue),
     Retourenquote: parseFloat(d.return_rate.toFixed(1)),
-    Benchmark: DACH_RETURN_BENCHMARKS[d.category] ?? null,
+    Benchmark: d.benchmark_rate > 0 ? d.benchmark_rate : null,
   }));
 
   return (

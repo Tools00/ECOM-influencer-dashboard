@@ -15,6 +15,7 @@ export interface Compensation {
   commission_pct?: number;       // for: commission, hybrid (0–100)
   per_post_eur?: number;         // for: per_post
   posts_count?: number;          // for: per_post (posts delivered in period)
+  start_date?: string;           // ISO "YYYY-MM-DD" — für Vergütungshistorie in Supabase
 }
 
 // ─── Core entities ─────────────────────────────────────────────────────────
@@ -29,6 +30,8 @@ export interface Influencer {
   followers: number;
   campaign_name: string;
   compensation: Compensation;
+  is_active: boolean;            // false = inaktiv / Kampagne beendet
+  contract_start_date?: string;  // ISO "YYYY-MM-DD"
 }
 
 export interface Order {
@@ -37,10 +40,13 @@ export interface Order {
   order_date: string;
   gross_value_eur: number;
   return_type: ReturnType;
-  return_value_eur: number;   // 0 for "none", full gross for "full", partial amount for "partial"
+  return_value_eur: number;    // 0 for "none", full gross for "full", partial amount for "partial"
   product_category: string;
   item_count: number;
   order_source: OrderSource;
+  shopify_order_id?: string;   // Shopify Order ID — für 2-Way Sync
+  customer_id?: string;        // Shopify Customer ID — für Kundenanalysen
+  return_date?: string;        // ISO "YYYY-MM-DD" — wann retourniert
 }
 
 export interface InfluencerStats {
@@ -94,6 +100,7 @@ export interface CategoryRevenue {
   revenue: number;
   orders: number;
   return_rate: number;
+  benchmark_rate: number;      // DACH-Benchmark Retourenquote (0 wenn unbekannt)
 }
 
 export interface CampaignSummary {

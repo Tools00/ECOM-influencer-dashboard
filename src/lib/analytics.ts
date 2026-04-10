@@ -1,5 +1,5 @@
 import { Influencer, InfluencerStats, Order, DashboardSummary, DateRange, DailyRevenue, CategoryRevenue, CampaignSummary, PeriodComparison, Compensation, OrderSource } from "./types";
-import { REFERENCE_DATE } from "./constants";
+import { REFERENCE_DATE, DACH_RETURN_BENCHMARKS } from "./constants";
 
 // ─── Date filtering ────────────────────────────────────────────────────────
 
@@ -97,7 +97,19 @@ export function computePeriodComparison(
   range: DateRange
 ): PeriodComparison {
   const ref = new Date(REFERENCE_DATE);
-  const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : 91;
+  let days: number;
+  if (range === "7d") days = 7;
+  else if (range === "30d") days = 30;
+  else if (range === "90d") days = 90;
+  else {
+    // "all": tatsächliche Datumsspanne aus den Orders berechnen
+    if (orders.length === 0) {
+      days = 91;
+    } else {
+      const earliest = orders.reduce((min, o) => o.order_date < min ? o.order_date : min, orders[0].order_date);
+      days = Math.ceil((ref.getTime() - new Date(earliest).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    }
+  }
 
   const currentOrders = filterOrdersByWindow(orders, ref, days);
   const prevEnd = new Date(ref);
@@ -159,6 +171,7 @@ export function computeCategoryRevenue(orders: Order[]): CategoryRevenue[] {
       revenue: v.revenue,
       orders: v.orders,
       return_rate: v.orders > 0 ? (v.returns / v.orders) * 100 : 0,
+      benchmark_rate: DACH_RETURN_BENCHMARKS[category] ?? 0,
     }))
     .sort((a, b) => b.revenue - a.revenue);
 }
@@ -199,6 +212,28 @@ export function computeAttributionBreakdown(orders: Order[]): AttributionBreakdo
     const net = o.gross_value_eur - o.return_value_eur;
     result[o.order_source].orders += 1;
     result[o.order_source].net_revenue += net;
+  }
+  return result;
+}
+
+// ─── Total net revenue sparkline (lückenlose Tagesserie) ──────────────────
+
+export function computeTotalNetSparkline(orders: Order[], range: DateRange): number[] {
+  if (range === "all") {
+    // Für "all": chronologisch aggregierte Tageswerte (ohne Nullen)
+    return computeDailyRevenue(orders).map((d) => d.net);
+  }
+  const ref = new Date(REFERENCE_DATE);
+  const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
+  const result: number[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(ref);
+    d.setDate(ref.getDate() - i);
+    const iso = d.toISOString().split("T")[0];
+    const dayNet = orders
+      .filter((o) => o.order_date === iso)
+      .reduce((s, o) => s + o.gross_value_eur - o.return_value_eur, 0);
+    result.push(dayNet);
   }
   return result;
 }

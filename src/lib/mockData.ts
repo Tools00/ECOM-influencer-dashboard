@@ -14,7 +14,10 @@ export const INFLUENCERS: Influencer[] = [
       type: "fixed",
       interval: "monthly",
       fixed_eur: 500,
+      start_date: "2024-01-01",
     },
+    is_active: true,
+    contract_start_date: "2024-01-01",
   },
   {
     id: "inf_002",
@@ -28,7 +31,10 @@ export const INFLUENCERS: Influencer[] = [
     compensation: {
       type: "commission",
       commission_pct: 12,
+      start_date: "2024-01-01",
     },
+    is_active: true,
+    contract_start_date: "2024-01-01",
   },
   {
     id: "inf_003",
@@ -44,7 +50,10 @@ export const INFLUENCERS: Influencer[] = [
       interval: "monthly",
       fixed_eur: 200,
       commission_pct: 8,
+      start_date: "2024-01-01",
     },
+    is_active: true,
+    contract_start_date: "2024-01-01",
   },
   {
     id: "inf_004",
@@ -59,7 +68,10 @@ export const INFLUENCERS: Influencer[] = [
       type: "per_post",
       per_post_eur: 300,
       posts_count: 3,
+      start_date: "2024-01-01",
     },
+    is_active: true,
+    contract_start_date: "2024-01-01",
   },
   {
     id: "inf_005",
@@ -75,7 +87,10 @@ export const INFLUENCERS: Influencer[] = [
       interval: "monthly",
       fixed_eur: 300,
       commission_pct: 5,
+      start_date: "2024-01-01",
     },
+    is_active: true,
+    contract_start_date: "2024-01-01",
   },
 ];
 
