@@ -2,7 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { fetchInfluencers, fetchOrders } from "@/lib/supabase";
 import {
   Database, Webhook, Shield, Users, ShoppingBag,
-  CheckCircle, Clock, ExternalLink
+  CheckCircle, ExternalLink
 } from "lucide-react";
 
 export default async function EinstellungenPage() {
@@ -68,23 +68,23 @@ export default async function EinstellungenPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <h3 className="text-sm font-semibold text-gray-900">Shopify Webhook</h3>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
-                    Sprint 3B
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                    Aktiv
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mb-3 leading-relaxed">
                   Echtzeit-Sync von Orders, Retouren und Discount-Code-Nutzung aus deinem Shopify-Store.
                 </p>
                 <div className="bg-gray-50 rounded-xl px-4 py-3 space-y-2">
-                  <p className="text-xs font-medium text-gray-500">Webhook-Endpoint (nach Sprint 3B aktiv)</p>
+                  <p className="text-xs font-medium text-gray-500">Webhook-Endpoint</p>
                   <code className="text-xs text-indigo-700 break-all">
                     POST /api/shopify/webhook
                   </code>
                   <div className="pt-1 space-y-1">
                     {["orders/create", "orders/updated", "refunds/create"].map((event) => (
                       <div key={event} className="flex items-center gap-2">
-                        <Clock size={11} className="text-amber-400 shrink-0" />
-                        <span className="text-xs text-gray-400 font-mono">{event}</span>
+                        <CheckCircle size={11} className="text-emerald-500 shrink-0" />
+                        <span className="text-xs text-gray-500 font-mono">{event}</span>
                       </div>
                     ))}
                   </div>
@@ -158,7 +158,7 @@ export default async function EinstellungenPage() {
         </div>
 
         <p className="text-center text-xs text-gray-300 pt-2 max-w-2xl">
-          Influencer Dashboard v3.0 · Sprint 3A aktiv · DACH E-Commerce
+          Influencer Dashboard v3.0 · Sprint 3B aktiv · DACH E-Commerce
         </p>
       </main>
     </div>

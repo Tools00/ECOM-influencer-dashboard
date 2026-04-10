@@ -13,6 +13,19 @@ export const supabase = useMock
   ? null
   : createClient(supabaseUrl!, supabaseKey!);
 
+// Server-seitiger Admin-Client (Service Role Key) — nur in API Routes verwenden
+export function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url) throw new Error("Env-Var fehlt: NEXT_PUBLIC_SUPABASE_URL");
+  if (!key) throw new Error("Env-Var fehlt: SUPABASE_SERVICE_ROLE_KEY");
+
+  return createClient(url, key, {
+    auth: { persistSession: false },
+  });
+}
+
 // ─── Zod Schemas (DB-Zeilen → TypeScript) ──────────────────
 
 const InfluencerRowSchema = z.object({
