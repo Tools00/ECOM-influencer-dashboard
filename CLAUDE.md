@@ -139,53 +139,106 @@ Wichtige Funktionen in `supabase.ts`:
 - **Sprint 4A:** `REFERENCE_DATE` dynamisch, Skeleton-Loading (`loading.tsx`), Error Boundaries (`error.tsx`)
 - **Sprint 4B:** Influencer-Admin — `NewInfluencerModal`, Deaktivieren, Compensation persistiert
 - **Sprint 4B.1:** Influencer bearbeiten (`EditInfluencerModal`), Reaktivieren-Button, `PUT /api/influencers/[id]`
+- **Sprint 4C:** Monatsabschluss-Seite (`/monatsabschluss`), Excel-Export kompakt/vollständig (SheetJS), PDF via Print-CSS
 
-### Zurückgestellt
-- **Sprint 4A.2 (Auth/Login):** Supabase Auth, Magic Link, `middleware.ts` schützt alle Routes. Kein Blocker solange Dashboard intern. Jederzeit nachholen.
+---
 
-### Nächstes — Sprint 4C: Monatsabschluss + Reporting
+## Demo-Prep (Bewerbung bei SaaS-Firma Leo)
 
-**Neue Seite `/monatsabschluss`:**
-- Beliebiger Monatsauswahl via URL param `?month=2024-03`
-- KPI-Cards: Umsatz brutto/netto, Retouren, Gesamtkosten, Profit, ROI
-- Tabelle: alle Influencer mit monatlichen Einzelwerten + Attribution-Split (Influencer vs. Meta Ads vs. Organic)
-- Vergleich Vormonat (+/- %)
-- Pro Influencer: Einzelbericht-Button → separates druckbares PDF (für Streitfälle / Abrechnungen)
-- Gesamt-PDF: `window.print()` + Print-CSS (keine neue Dependency)
+**Ziel:** Dashboard mit realistischen Echtdaten demonstrieren — 30 Influencer, ~8.000 Orders/Monat (267/Tag, 11/Stunde), Ø 375–625 EUR/Order, ~3–5M EUR Umsatz/Monat. Zeitraum: 1. Januar 2026 bis gestern. Ab heute: echte Live-Orders via Shopify Dev Store.
 
-**Excel-Export (.xlsx via SheetJS) — zwei Varianten:**
-- **Kompakt** (`kompakt-2024-03.xlsx`): 1 Sheet — Name, Umsatz netto, Retouren, Kosten, Profit, ROI
-- **Vollständig** (`vollständig-2024-03.xlsx`): 4 Sheets:
-  - Tab 1: Übersicht (ein Influencer pro Zeile, Monatssummen)
-  - Tab 2: Order-Details (jede einzelne Bestellung des Monats)
-  - Tab 3: Attribution-Split (Influencer vs. Meta Ads vs. Organic)
-  - Tab 4: Vergütungsübersicht (was wurde fällig)
-- Neue Dependency: `xlsx` (SheetJS) — einzige neue Dependency in Sprint 4C
+### Demo-Sprint A — Seed-Daten (30 Influencer + ~27.000 Orders)
 
-**Technisch:**
-- Neue Supabase-Query: Orders gefiltert nach Monat
-- Neue Analytics-Funktion: `computeMonthlyStats(influencers, orders, month)`
-- Modular aufgebaut für spätere Ergänzungen
+**30 Influencer-Profile (fiktiv, realistisch DACH):**
+- Platform-Mix: Instagram (12), TikTok (10), YouTube (8)
+- Nischen: Fashion (6), Beauty (5), Fitness (4), Food (4), Tech (4), Gaming (3), Lifestyle (4)
+- Vergütungsmodelle: gemischt (fixed, commission, hybrid, per_post, barter)
 
-### Geplante Features für später (Backlog)
+**Umsatz-Verteilung:**
+- Top 5–8 Influencer: ~60% des Umsatzes
+- YouTube: hohe Ø Order-Values (500–800 EUR), weniger Orders aber mehr Umsatz
+- Instagram/TikTok: mehr Orders, niedrigere Ø Werte (150–350 EUR)
+- Langfristige Kanäle (YouTube) → geringerer Meta-Overlap (10–20%)
+- Short-Form (TikTok/Reels) → höherer Meta-Overlap (25–40%)
 
-**Reporting / Export:**
-- E-Mail-Versand des Influencer-Einzelberichts direkt aus der App
-- Automatischer Monatsabschluss via Cron (auto-generierter Bericht am 1. jeden Monats)
-- Influencer-eigener Login-Link mit schreibgeschützter Berichtsansicht (für transparente Abrechnung)
-- CSV/Excel-Export mit Order-Detail-Ebene (eine Zeile pro Order statt pro Influencer)
+**Attribution-Overlap-Logik:**
+- ~30% aller Influencer-Orders kommen gleichzeitig über Meta Ads rein (gleicher Discount Code)
+- Fashion/Beauty: 30–40% Overlap
+- Tech/Gaming: 10–15% Overlap
+- YouTube: 10–20% Overlap
+- Overlap-Orders: `order_source = "meta_ads"` mit Influencer-Discount Code
 
-**Auth / Zugriffskontrolle (Sprint 4A.2 — zurückgestellt):**
-- Supabase Auth, Magic Link
-- `middleware.ts` schützt alle Routes
-- Verschiedene Rollen: Admin (Shop-Besitzer) vs. Read-only (Influencer-Bericht)
-- Kein Blocker solange Dashboard intern — jederzeit nachholen
+**Seed-Script:** `scripts/seed-demo.ts` — Supabase bulk INSERT via Service Role Key
 
-**Dashboard-Vertiefung:**
-- Cohort-Analyse (Influencer-Performance über Zeit)
+### Demo-Sprint B — Filter, Sortierung & Tags
+
+**Filter (kombinierbar):**
+- Platform: Instagram / TikTok / YouTube
+- Nische: alle vorhandenen Nischen
+- Kampagne
+- Status: aktiv / inaktiv
+- Tag: beliebige Tags
+- Performance-Tier: automatisch aus ROI (Top / Mid / Low)
+
+**Sortierung (auf jede Spalte):**
+- Umsatz netto, Brutto, ROI, Retourenquote, Follower, Orders, Kosten, Profit
+
+**Tag-System:**
+- Vorgeschlagene Tags: `VIP`, `Top Performer`, `Risiko`, `Pause`, `Neu`, `Langzeit-Partner`
+- Freie Tags: User kann beliebig neue Tags erstellen
+- Tags filterbar: Klick auf Tag → filtert Influencer-Liste
+- Smart Suggestion: beim Erstellen eines neuen Tags → schlägt passende andere Influencer vor
+- Tags in Supabase: eigene `tags`-Tabelle + `influencer_tags` Join-Tabelle
+
+### Demo-Sprint C — Chrome Extension: Shop-Simulator
+
+**Ziel:** Dauerhafte, selbstständige Simulation echter Shopify-Checkouts ohne KI-API-Abhängigkeit.
+
+**Aufbau (separates Repo: `ecom-shop-simulator-extension`):**
+- Chrome Extension (Manifest V3)
+- Läuft im Hintergrund (Service Worker)
+- Besucht Shopify Dev Store `ecom-dach-test` automatisch
+- Wählt zufällige Produkte, legt in Warenkorb, gibt Discount Code ein, schließt Checkout ab
+- Rotiert über alle 30 Influencer-Discount-Codes (gewichtet nach Tier)
+- Simuliert realistische DACH-Kundendaten (Name, Adresse, E-Mail)
+- Intervall: alle 5–8 Minuten ein Checkout → ~267 Orders/Tag
+- Triggers echte Shopify Webhooks → Supabase → Live-Dashboard-Update
+- Konfigurierbar: Pause, Geschwindigkeit, Influencer-Gewichtung
+- **Keine KI-API** — reine Browser-Automatisierung
+
+---
+
+### Nächste Sprints — Kurzfristig
+
+**Sprint 5A — Auth & Zugriffskontrolle**
+- Supabase Auth + Magic Link Login
+- `middleware.ts` schützt alle Routes außer Webhook
+- Rollen: Admin (Shop-Besitzer) vs. Read-only (Influencer-Bericht)
+
+**Sprint 5B — Influencer-Berichtsansicht (Read-only)**
+- Influencer-eigener Login-Link
+- Schreibgeschützte Ansicht des eigenen Monatsberichts
+- Grundlage: Streitvermeidung + transparente Abrechnung
+
+**Sprint 5C — Alerts & Benachrichtigungen**
+- Alert wenn Attribution-Risk-Score kritisch steigt
+- Alert wenn Retourenquote DACH-Benchmark überschreitet
+- E-Mail-Notifications bei Schwellenwert-Überschreitungen (Resend oder Supabase SMTP)
+
+**Sprint 5D — Automatisierung**
+- Monatsabschluss-Bericht automatisch am 1. jeden Monats (Vercel Cron)
+- E-Mail-Versand des Influencer-Einzelberichts direkt aus App
+
+### Langfristig
+
+**Sprint 6A — Dashboard-Vertiefung**
+- Cohort-Analyse (Influencer-Performance über mehrere Monate)
 - LTV pro Influencer (Customer Lifetime Value der geworbenen Kunden)
-- Automatische Alerts wenn Attribution-Risk steigt oder Return-Rate Benchmark überschreitet
-- Notifications / E-Mail-Alerts bei Schwellenwert-Überschreitungen
+
+**Sprint 6B — Multi-Tenant / SaaS-Ready**
+- Mehrere Shops / Workspaces pro Account
+- Onboarding-Flow für neue Shops
+- Billing-Grundstruktur (vorbereitet für SaaS-Monetarisierung)
 
 ---
 
