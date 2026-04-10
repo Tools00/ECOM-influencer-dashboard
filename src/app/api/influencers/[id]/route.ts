@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchInfluencers, fetchOrders, setInfluencerActive } from "@/lib/supabase";
+import { fetchInfluencers, fetchOrders, setInfluencerActive, updateInfluencer } from "@/lib/supabase";
+import { Influencer } from "@/lib/types";
 import {
   computeInfluencerStats,
   computeDailyRevenue,
@@ -52,6 +53,26 @@ export async function PATCH(
   try {
     await setInfluencerActive(id, body.is_active);
     return NextResponse.json({ success: true, influencer_id: id, is_active: body.is_active });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const body = await req.json() as Omit<Influencer, "id">;
+
+  if (!body.name || !body.handle || !body.discount_code || !body.platform) {
+    return NextResponse.json({ error: "Pflichtfelder fehlen" }, { status: 400 });
+  }
+
+  try {
+    await updateInfluencer(id, body);
+    return NextResponse.json({ success: true, influencer_id: id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

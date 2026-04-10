@@ -198,6 +198,40 @@ export async function setInfluencerActive(
   if (error) throw new Error(`Supabase setInfluencerActive: ${error.message}`);
 }
 
+// ─── Influencer vollständig updaten ───────────────────────
+
+export async function updateInfluencer(
+  influencerId: string,
+  influencer: Omit<Influencer, "id">
+): Promise<void> {
+  if (useMock || !supabase) return;
+
+  const { compensation } = influencer;
+
+  const { error } = await supabase
+    .from("influencers")
+    .update({
+      name:                influencer.name,
+      handle:              influencer.handle,
+      platform:            influencer.platform,
+      niche:               influencer.niche,
+      discount_code:       influencer.discount_code,
+      followers:           influencer.followers,
+      campaign_name:       influencer.campaign_name,
+      contract_start_date: influencer.contract_start_date ?? null,
+      comp_type:           compensation.type,
+      comp_interval:       compensation.interval ?? null,
+      comp_fixed_eur:      compensation.fixed_eur ?? null,
+      comp_commission_pct: compensation.commission_pct ?? null,
+      comp_per_post_eur:   compensation.per_post_eur ?? null,
+      comp_posts_count:    compensation.posts_count ?? null,
+      comp_start_date:     compensation.start_date ?? null,
+    })
+    .eq("id", influencerId);
+
+  if (error) throw new Error(`Supabase updateInfluencer: ${error.message}`);
+}
+
 // ─── Compensation Update (für CompensationEditor) ──────────
 
 export async function updateCompensation(
