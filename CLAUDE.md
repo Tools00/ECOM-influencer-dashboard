@@ -143,8 +143,49 @@ Wichtige Funktionen in `supabase.ts`:
 ### Zurückgestellt
 - **Sprint 4A.2 (Auth/Login):** Supabase Auth, Magic Link, `middleware.ts` schützt alle Routes. Kein Blocker solange Dashboard intern. Jederzeit nachholen.
 
-### Nächstes
-- **Sprint 4C:** Reporting/Export — Monatsabschluss-Ansicht, erweiterter CSV-Export, optional PDF
+### Nächstes — Sprint 4C: Monatsabschluss + Reporting
+
+**Neue Seite `/monatsabschluss`:**
+- Beliebiger Monatsauswahl via URL param `?month=2024-03`
+- KPI-Cards: Umsatz brutto/netto, Retouren, Gesamtkosten, Profit, ROI
+- Tabelle: alle Influencer mit monatlichen Einzelwerten + Attribution-Split (Influencer vs. Meta Ads vs. Organic)
+- Vergleich Vormonat (+/- %)
+- Pro Influencer: Einzelbericht-Button → separates druckbares PDF (für Streitfälle / Abrechnungen)
+- Gesamt-PDF: `window.print()` + Print-CSS (keine neue Dependency)
+
+**Excel-Export (.xlsx via SheetJS) — zwei Varianten:**
+- **Kompakt** (`kompakt-2024-03.xlsx`): 1 Sheet — Name, Umsatz netto, Retouren, Kosten, Profit, ROI
+- **Vollständig** (`vollständig-2024-03.xlsx`): 4 Sheets:
+  - Tab 1: Übersicht (ein Influencer pro Zeile, Monatssummen)
+  - Tab 2: Order-Details (jede einzelne Bestellung des Monats)
+  - Tab 3: Attribution-Split (Influencer vs. Meta Ads vs. Organic)
+  - Tab 4: Vergütungsübersicht (was wurde fällig)
+- Neue Dependency: `xlsx` (SheetJS) — einzige neue Dependency in Sprint 4C
+
+**Technisch:**
+- Neue Supabase-Query: Orders gefiltert nach Monat
+- Neue Analytics-Funktion: `computeMonthlyStats(influencers, orders, month)`
+- Modular aufgebaut für spätere Ergänzungen
+
+### Geplante Features für später (Backlog)
+
+**Reporting / Export:**
+- E-Mail-Versand des Influencer-Einzelberichts direkt aus der App
+- Automatischer Monatsabschluss via Cron (auto-generierter Bericht am 1. jeden Monats)
+- Influencer-eigener Login-Link mit schreibgeschützter Berichtsansicht (für transparente Abrechnung)
+- CSV/Excel-Export mit Order-Detail-Ebene (eine Zeile pro Order statt pro Influencer)
+
+**Auth / Zugriffskontrolle (Sprint 4A.2 — zurückgestellt):**
+- Supabase Auth, Magic Link
+- `middleware.ts` schützt alle Routes
+- Verschiedene Rollen: Admin (Shop-Besitzer) vs. Read-only (Influencer-Bericht)
+- Kein Blocker solange Dashboard intern — jederzeit nachholen
+
+**Dashboard-Vertiefung:**
+- Cohort-Analyse (Influencer-Performance über Zeit)
+- LTV pro Influencer (Customer Lifetime Value der geworbenen Kunden)
+- Automatische Alerts wenn Attribution-Risk steigt oder Return-Rate Benchmark überschreitet
+- Notifications / E-Mail-Alerts bei Schwellenwert-Überschreitungen
 
 ---
 

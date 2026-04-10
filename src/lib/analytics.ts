@@ -1,4 +1,21 @@
 import { Influencer, InfluencerStats, Order, DashboardSummary, DateRange, DailyRevenue, CategoryRevenue, CampaignSummary, PeriodComparison, Compensation, OrderSource } from "./types";
+
+// ─── MonthlyReport Typ ────────────────────────────────────────────────────────
+
+export interface MonthlyReport {
+  month: string;                  // "YYYY-MM"
+  summary: DashboardSummary;
+  prevSummary: DashboardSummary;
+  changes: {
+    revenue_change_pct: number;
+    orders_change_pct: number;
+    profit_change_pct: number;
+    return_rate_change: number;
+  };
+  stats: InfluencerStats[];
+  orders: Order[];
+  attribution: AttributionBreakdown;
+}
 import { REFERENCE_DATE, DACH_RETURN_BENCHMARKS } from "./constants";
 
 // ─── Date filtering ────────────────────────────────────────────────────────
@@ -270,6 +287,50 @@ export function computeTotalNetSparkline(orders: Order[], range: DateRange): num
     result.push(dayNet);
   }
   return result;
+}
+
+// ─── Monatsabschluss ──────────────────────────────────────────────────────────
+
+export function filterOrdersByMonth(orders: Order[], month: string): Order[] {
+  return orders.filter((o) => o.order_date.startsWith(month));
+}
+
+export function computeMonthlyStats(
+  influencers: Influencer[],
+  orders: Order[],
+  month: string
+): MonthlyReport {
+  const monthOrders = filterOrdersByMonth(orders, month);
+  const stats = influencers.map((i) => computeInfluencerStats(i, monthOrders));
+  const summary = computeDashboardSummary(stats);
+
+  // Vormonat berechnen
+  const [y, m] = month.split("-").map(Number);
+  const prevDate = new Date(y, m - 2, 1); // m-2: JS-Monate 0-basiert
+  const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+  const prevOrders = filterOrdersByMonth(orders, prevMonth);
+  const prevStats = influencers.map((i) => computeInfluencerStats(i, prevOrders));
+  const prevSummary = computeDashboardSummary(prevStats);
+
+  function pct(curr: number, prev: number) {
+    if (prev === 0) return curr > 0 ? 100 : 0;
+    return ((curr - prev) / prev) * 100;
+  }
+
+  return {
+    month,
+    summary,
+    prevSummary,
+    changes: {
+      revenue_change_pct: pct(summary.total_net_revenue, prevSummary.total_net_revenue),
+      orders_change_pct: pct(summary.total_orders, prevSummary.total_orders),
+      profit_change_pct: pct(summary.total_profit, prevSummary.total_profit),
+      return_rate_change: summary.avg_return_rate - prevSummary.avg_return_rate,
+    },
+    stats,
+    orders: monthOrders,
+    attribution: computeAttributionBreakdown(monthOrders),
+  };
 }
 
 // ─── Sparkline ─────────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Users,
   Megaphone,
+  FileText,
   Settings,
 } from "lucide-react";
 
@@ -9,6 +10,7 @@ export const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/influencer", label: "Influencer", icon: Users },
   { href: "/kampagnen", label: "Kampagnen", icon: Megaphone },
+  { href: "/monatsabschluss", label: "Monatsabschluss", icon: FileText },
   { href: "/einstellungen", label: "Einstellungen", icon: Settings },
 ] as const;
 
