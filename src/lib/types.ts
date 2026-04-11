@@ -1,6 +1,6 @@
 export type Platform = "instagram" | "tiktok" | "youtube";
 export type DateRange = "7d" | "30d" | "90d" | "all";
-export type OrderSource = "influencer" | "meta_ads" | "organic";
+export type OrderSource = "influencer" | "meta_ads";
 export type ReturnType = "none" | "full" | "partial";
 
 // ─── Compensation Models ───────────────────────────────────────────────────

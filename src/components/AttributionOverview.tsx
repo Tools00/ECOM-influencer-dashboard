@@ -7,14 +7,13 @@ interface Props {
 }
 
 export function AttributionOverview({ attribution }: Props) {
-  const { influencer, meta_ads, organic } = attribution;
-  const total = influencer.orders + meta_ads.orders + organic.orders;
-  const totalRevenue = influencer.net_revenue + meta_ads.net_revenue + organic.net_revenue;
+  const { influencer, meta_ads } = attribution;
+  const total = influencer.orders + meta_ads.orders;
+  const totalRevenue = influencer.net_revenue + meta_ads.net_revenue;
 
   const sources = [
-    { label: "Influencer", ...influencer, color: "bg-emerald-500", textColor: "text-emerald-700", bgLight: "bg-emerald-50" },
-    { label: "Meta Ads", ...meta_ads, color: "bg-violet-500", textColor: "text-violet-700", bgLight: "bg-violet-50" },
-    { label: "Organisch", ...organic, color: "bg-gray-400", textColor: "text-gray-600", bgLight: "bg-gray-50" },
+    { label: "Influencer (ohne Meta-Overlap)", ...influencer, color: "bg-emerald-500", textColor: "text-emerald-700", bgLight: "bg-emerald-50" },
+    { label: "Meta Ads Overlap", ...meta_ads, color: "bg-violet-500", textColor: "text-violet-700", bgLight: "bg-violet-50" },
   ];
 
   const influencerPct = total > 0 ? Math.round((influencer.orders / total) * 100) : 0;
@@ -24,7 +23,7 @@ export function AttributionOverview({ attribution }: Props) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-800">Attribution</h3>
-          <p className="text-xs text-gray-400 mt-0.5">Bestellquellen über Discount Codes</p>
+          <p className="text-xs text-gray-400 mt-0.5">Discount-Code-Orders mit/ohne Meta-Referrer</p>
         </div>
         {meta_ads.orders > 0 && (
           <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1">

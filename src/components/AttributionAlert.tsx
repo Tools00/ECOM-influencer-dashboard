@@ -9,8 +9,8 @@ interface Props {
 }
 
 export function AttributionAlert({ attribution, discountCode, totalNetRevenue }: Props) {
-  const { meta_ads, organic, influencer } = attribution;
-  const total = influencer.orders + meta_ads.orders + organic.orders;
+  const { meta_ads, influencer } = attribution;
+  const total = influencer.orders + meta_ads.orders;
   const risk = computeAttributionRisk(attribution);
 
   if (risk.risk === "none") {

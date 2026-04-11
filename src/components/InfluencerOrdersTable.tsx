@@ -15,13 +15,11 @@ type SourceFilter = "all" | OrderSource;
 const SOURCE_LABELS: Record<OrderSource, string> = {
   influencer: "Influencer",
   meta_ads: "Meta Ads",
-  organic: "Organisch",
 };
 
 const SOURCE_STYLES: Record<OrderSource, string> = {
   influencer: "text-emerald-700 bg-emerald-50",
   meta_ads: "text-violet-700 bg-violet-50",
-  organic: "text-gray-600 bg-gray-100",
 };
 
 export function InfluencerOrdersTable({ orders }: Props) {
@@ -59,7 +57,6 @@ export function InfluencerOrdersTable({ orders }: Props) {
     { key: "all", label: "Alle", count: orders.length },
     { key: "influencer", label: "Influencer", count: orders.filter((o) => o.order_source === "influencer").length },
     { key: "meta_ads", label: "Meta Ads", count: metaAdsCount },
-    { key: "organic", label: "Organisch", count: orders.filter((o) => o.order_source === "organic").length },
   ];
 
   return (

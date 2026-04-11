@@ -162,20 +162,18 @@ export function MonatsabschlussClient({ report }: Props) {
         {/* Attribution-Zusammenfassung */}
         <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 print:shadow-none print:border-gray-200">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">Attribution-Split</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {(["influencer", "meta_ads", "organic"] as const).map((src) => {
+          <div className="grid grid-cols-2 gap-4">
+            {(["influencer", "meta_ads"] as const).map((src) => {
               const d = attribution[src];
-              const total = attribution.influencer.orders + attribution.meta_ads.orders + attribution.organic.orders;
+              const total = attribution.influencer.orders + attribution.meta_ads.orders;
               const pct = total > 0 ? (d.orders / total) * 100 : 0;
               const labels: Record<string, string> = {
-                influencer: "Influencer",
-                meta_ads: "Meta Ads",
-                organic: "Organic",
+                influencer: "Influencer (ohne Meta-Overlap)",
+                meta_ads: "Meta Ads Overlap",
               };
               const colors: Record<string, string> = {
                 influencer: "text-emerald-700 bg-emerald-50 border-emerald-200",
                 meta_ads: "text-indigo-700 bg-indigo-50 border-indigo-200",
-                organic: "text-gray-700 bg-gray-50 border-gray-200",
               };
               return (
                 <div key={src} className={clsx("rounded-lg border p-3", colors[src])}>

@@ -216,14 +216,12 @@ export function computeCampaignSummaries(stats: InfluencerStats[]): CampaignSumm
 export interface AttributionBreakdown {
   influencer: { orders: number; net_revenue: number };
   meta_ads: { orders: number; net_revenue: number };
-  organic: { orders: number; net_revenue: number };
 }
 
 export function computeAttributionBreakdown(orders: Order[]): AttributionBreakdown {
   const result: AttributionBreakdown = {
     influencer: { orders: 0, net_revenue: 0 },
     meta_ads: { orders: 0, net_revenue: 0 },
-    organic: { orders: 0, net_revenue: 0 },
   };
   for (const o of orders) {
     const net = o.gross_value_eur - o.return_value_eur;
@@ -248,7 +246,7 @@ export interface AttributionRiskResult {
 export function computeAttributionRisk(
   breakdown: AttributionBreakdown
 ): AttributionRiskResult {
-  const total = breakdown.influencer.orders + breakdown.meta_ads.orders + breakdown.organic.orders;
+  const total = breakdown.influencer.orders + breakdown.meta_ads.orders;
   const overlap_pct = total > 0 ? (breakdown.meta_ads.orders / total) * 100 : 0;
 
   const risk: AttributionRisk =

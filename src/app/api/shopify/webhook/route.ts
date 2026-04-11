@@ -5,6 +5,7 @@ import {
   parseReturnType,
   parseCategory,
   parseItemCount,
+  parseOrderSource,
   computeRefundAmount,
   ShopifyOrder,
   ShopifyRefund,
@@ -70,7 +71,7 @@ async function handleOrderUpsert(
   // Influencer über Discount Code ermitteln
   const discountCode = order.discount_codes?.[0]?.code ?? null;
   let influencer_id: string | null = null;
-  let order_source: "influencer" | "meta_ads" | "organic" = "organic";
+  let order_source: "influencer" | "meta_ads" = "influencer";
 
   if (discountCode) {
     const { data } = await supabase
@@ -81,17 +82,16 @@ async function handleOrderUpsert(
 
     if (data) {
       influencer_id = data.id;
-      order_source = "influencer";
-    } else {
-      // Discount Code existiert, aber kein Influencer-Match → Meta Ads
-      order_source = "meta_ads";
+      // Meta-Overlap prüfen: gleicher Code + Meta-Referrer/Tag → meta_ads
+      order_source = parseOrderSource(order);
     }
   }
 
   if (!influencer_id) {
-    // Ohne Influencer-Zuordnung kein Eintrag möglich
+    // Ohne Influencer-Zuordnung kein Eintrag — Orders ohne Code/Match
+    // gehören nicht in die Influencer-Abrechnung.
     console.log(
-      `[shopify/webhook] Order ${shopifyOrderId} übersprungen — kein Influencer-Match (source: ${order_source})`
+      `[shopify/webhook] Order ${shopifyOrderId} übersprungen — kein Influencer-Match`
     );
     return;
   }

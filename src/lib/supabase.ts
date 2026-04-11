@@ -108,7 +108,7 @@ const OrderRowSchema = z.object({
   return_value_eur: z.number(),
   product_category: z.string(),
   item_count:       z.number().int(),
-  order_source:     z.enum(["influencer", "meta_ads", "organic"]),
+  order_source:     z.enum(["influencer", "meta_ads", "organic"]),  // "organic" legacy → gemappt auf "influencer"
   shopify_order_id: z.string().nullable().optional(),
   customer_id:      z.string().nullable().optional(),
   return_date:      z.string().nullable().optional(),
@@ -121,7 +121,7 @@ const OrderRowSchema = z.object({
   return_value_eur: row.return_value_eur,
   product_category: row.product_category,
   item_count:       row.item_count,
-  order_source:     row.order_source,
+  order_source:     row.order_source === "organic" ? "influencer" : row.order_source,
   shopify_order_id: row.shopify_order_id ?? undefined,
   customer_id:      row.customer_id ?? undefined,
   return_date:      row.return_date ?? undefined,

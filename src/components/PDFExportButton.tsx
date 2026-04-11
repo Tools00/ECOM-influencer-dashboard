@@ -164,25 +164,19 @@ export function PDFExportButton({ report }: Props) {
     y += 5;
 
     const attr = report.attribution;
-    const totalOrders = attr.influencer.orders + attr.meta_ads.orders + attr.organic.orders;
+    const totalOrders = attr.influencer.orders + attr.meta_ads.orders;
     const attrRows: [string, string, string, string][] = [
       [
-        "Influencer (eigene Codes)",
+        "Influencer (ohne Meta-Overlap)",
         fmtInt(attr.influencer.orders),
         fmtEURPrecise(attr.influencer.net_revenue),
         totalOrders > 0 ? fmtPct((attr.influencer.orders / totalOrders) * 100) : "—",
       ],
       [
-        "Meta Ads (Overlap-Risiko)",
+        "Meta Ads Overlap",
         fmtInt(attr.meta_ads.orders),
         fmtEURPrecise(attr.meta_ads.net_revenue),
         totalOrders > 0 ? fmtPct((attr.meta_ads.orders / totalOrders) * 100) : "—",
-      ],
-      [
-        "Organic",
-        fmtInt(attr.organic.orders),
-        fmtEURPrecise(attr.organic.net_revenue),
-        totalOrders > 0 ? fmtPct((attr.organic.orders / totalOrders) * 100) : "—",
       ],
     ];
 

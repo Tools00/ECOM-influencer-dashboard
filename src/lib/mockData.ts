@@ -138,7 +138,7 @@ export const ORDERS: Order[] = [
 
   // Max Bauer – Jan (10 orders)
   o("ord_j09", "inf_002", "2024-01-02", 49.99, false, "Sportswear", 1, "meta_ads"),
-  o("ord_j10", "inf_002", "2024-01-05", 34.99, false, "Supplements", 1, "organic"),
+  o("ord_j10", "inf_002", "2024-01-05", 34.99, false, "Supplements", 1, "influencer"),
   o("ord_j11", "inf_002", "2024-01-08", 69.90, false, "Sportswear"),
   o("ord_j12", "inf_002", "2024-01-11", 44.99, false, "Supplements"),
   o("ord_j13", "inf_002", "2024-01-14", 89.00, false, "Equipment"),
@@ -266,7 +266,7 @@ export const ORDERS: Order[] = [
 
   // Max Bauer – Mar (22 orders)
   o("ord_019", "inf_002", "2024-03-01", 49.99, false, "Sportswear", 1, "meta_ads"),
-  o("ord_020", "inf_002", "2024-03-02", 89.00, false, "Supplements", 1, "organic"),
+  o("ord_020", "inf_002", "2024-03-02", 89.00, false, "Supplements", 1, "influencer"),
   o("ord_021", "inf_002", "2024-03-04", 59.90, false, "Sportswear"),
   o("ord_022", "inf_002", "2024-03-05", 44.99, false, "Supplements"),
   o("ord_023", "inf_002", "2024-03-06", 79.90, true, "Sportswear"),
@@ -326,8 +326,8 @@ export const ORDERS: Order[] = [
   o("ord_m06", "inf_005", "2024-03-14",  89.00, false, "Skincare",    1, "meta_ads"),
   o("ord_m07", "inf_005", "2024-03-23",  64.90, false, "Make-up",     1, "meta_ads"),
   // Organic März (direkt / ohne Code-Zuweisung)
-  o("ord_m08", "inf_002", "2024-03-17",  34.99, false, "Yoga",        1, "organic"),
-  o("ord_m09", "inf_001", "2024-03-22",  59.90, false, "Schuhe",      1, "organic"),
+  o("ord_m08", "inf_002", "2024-03-17",  34.99, false, "Yoga",        1, "influencer"),
+  o("ord_m09", "inf_001", "2024-03-22",  59.90, false, "Schuhe",      1, "influencer"),
 
   // Anna Schmidt – Mar (16 orders)
   o("ord_063", "inf_005", "2024-03-01", 69.90, false, "Skincare"),

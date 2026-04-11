@@ -353,8 +353,6 @@ export function ExcelExportButton({ report, variant }: Props) {
         { header: "Influencer-Netto",    key: "in",     width: 18, numFmt: EUR_FMT, align: "right" },
         { header: "Meta Ads-Orders",     key: "mo",     width: 18, numFmt: INT_FMT, align: "right" },
         { header: "Meta Ads-Netto",      key: "mn",     width: 18, numFmt: EUR_FMT, align: "right" },
-        { header: "Organic-Orders",      key: "oo",     width: 16, numFmt: INT_FMT, align: "right" },
-        { header: "Organic-Netto",       key: "on",     width: 18, numFmt: EUR_FMT, align: "right" },
         { header: "Overlap % (Meta)",    key: "ov",     width: 18, numFmt: PCT_FMT, align: "right" },
       ]
     );
@@ -362,10 +360,9 @@ export function ExcelExportButton({ report, variant }: Props) {
       const orders = report.orders.filter((o) => o.influencer_id === s.influencer.id);
       const inf = orders.filter((o) => o.order_source === "influencer");
       const meta = orders.filter((o) => o.order_source === "meta_ads");
-      const org = orders.filter((o) => o.order_source === "organic");
       const net = (arr: Order[]) =>
         arr.reduce((sum, o) => sum + o.gross_value_eur - o.return_value_eur, 0);
-      const total = inf.length + meta.length + org.length;
+      const total = inf.length + meta.length;
       wsAttr.addRow({
         name:   s.influencer.name,
         handle: s.influencer.handle,
@@ -373,8 +370,6 @@ export function ExcelExportButton({ report, variant }: Props) {
         in:     net(inf),
         mo:     meta.length,
         mn:     net(meta),
-        oo:     org.length,
-        on:     net(org),
         ov:     total > 0 ? (meta.length / total) * 100 : 0,
       });
     });
