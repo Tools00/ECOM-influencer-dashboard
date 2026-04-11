@@ -6,6 +6,9 @@ import { formatEUR, formatPct } from "@/lib/formatters";
 import { Megaphone, TrendingUp, TrendingDown } from "lucide-react";
 import clsx from "clsx";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function KampagnenPage() {
   const [influencers, orders] = await Promise.all([
     fetchInfluencers(),

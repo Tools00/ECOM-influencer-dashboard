@@ -10,6 +10,9 @@ import Link from "next/link";
 import { TrendingUp, TrendingDown, Users } from "lucide-react";
 import clsx from "clsx";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function InfluencerListPage() {
   const [influencers, orders] = await Promise.all([
     fetchInfluencers(),

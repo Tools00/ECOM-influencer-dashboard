@@ -122,14 +122,26 @@ export async function fetchInfluencers(): Promise<Influencer[]> {
 export async function fetchOrders(): Promise<Order[]> {
   if (useMock || !supabase) return ORDERS;
 
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*")
-    .order("order_date", { ascending: true });
+  // Supabase PostgREST default limit ist 1000. Bei ~27k Demo-Orders
+  // paginieren wir in 1000er-Chunks bis alle geladen sind.
+  const PAGE = 1000;
+  const all: unknown[] = [];
+  let from = 0;
+  // Obergrenze als Sicherheitsnetz gegen Endlosschleifen
+  for (let i = 0; i < 200; i++) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("order_date", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`Supabase fetchOrders: ${error.message}`);
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
 
-  if (error) throw new Error(`Supabase fetchOrders: ${error.message}`);
-
-  const parsed = OrdersSchema.safeParse(data);
+  const parsed = OrdersSchema.safeParse(all);
   if (!parsed.success) {
     console.error("Supabase Validierungsfehler (orders):", parsed.error.flatten());
     throw new Error("Ungültige Daten von Supabase (orders)");
