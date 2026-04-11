@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchInfluencers, fetchOrders, setInfluencerActive, updateInfluencer } from "@/lib/supabase";
+import { fetchInfluencers, fetchOrders, setInfluencerActive, updateInfluencer, invalidateInfluencersCache } from "@/lib/supabase";
 import { Influencer } from "@/lib/types";
 import {
   computeInfluencerStats,
@@ -52,6 +52,7 @@ export async function PATCH(
 
   try {
     await setInfluencerActive(id, body.is_active);
+    invalidateInfluencersCache();
     return NextResponse.json({ success: true, influencer_id: id, is_active: body.is_active });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
@@ -72,6 +73,7 @@ export async function PUT(
 
   try {
     await updateInfluencer(id, body);
+    invalidateInfluencersCache();
     return NextResponse.json({ success: true, influencer_id: id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

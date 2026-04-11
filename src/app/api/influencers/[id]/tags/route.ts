@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateInfluencerTags } from "@/lib/supabase";
+import { updateInfluencerTags, invalidateInfluencersCache } from "@/lib/supabase";
 
 export async function PATCH(
   req: NextRequest,
@@ -23,6 +23,7 @@ export async function PATCH(
 
   try {
     await updateInfluencerTags(id, cleaned);
+    invalidateInfluencersCache();
     return NextResponse.json({ success: true, influencer_id: id, tags: cleaned });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

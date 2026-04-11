@@ -1,7 +1,36 @@
 import { createClient } from "@supabase/supabase-js";
+import { cache } from "react";
 import { z } from "zod";
 import { Influencer, Order } from "./types";
 import { INFLUENCERS, ORDERS } from "./mockData";
+
+// ─── Cache-Konfiguration ──────────────────────────────────
+// Module-level in-memory Cache mit TTL. Next.js' unstable_cache hat ein
+// 2MB-Limit, das unsere ~27k Orders (~6.8MB) überschreiten würde. Der
+// Module-Cache lebt pro Serverless-Warm-Instance und wird per Mutation-
+// Invalidierung geleert.
+const CACHE_TTL_MS = 60 * 1000;
+
+type CacheEntry<T> = { data: T; expiresAt: number };
+const memCache = new Map<string, CacheEntry<unknown>>();
+
+function getMemCache<T>(key: string): T | null {
+  const entry = memCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    memCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setMemCache<T>(key: string, data: T): void {
+  memCache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+function invalidateMemCache(key: string): void {
+  memCache.delete(key);
+}
 
 // ─── Client ────────────────────────────────────────────────
 
@@ -101,9 +130,9 @@ const OrderRowSchema = z.object({
 const InfluencersSchema = z.array(InfluencerRowSchema);
 const OrdersSchema      = z.array(OrderRowSchema);
 
-// ─── Fetch-Funktionen ──────────────────────────────────────
+// ─── Raw-Fetcher (ohne Cache) ─────────────────────────────
 
-export async function fetchInfluencers(): Promise<Influencer[]> {
+async function fetchInfluencersRaw(): Promise<Influencer[]> {
   if (useMock || !supabase) return INFLUENCERS;
 
   const { data, error } = await supabase
@@ -121,26 +150,42 @@ export async function fetchInfluencers(): Promise<Influencer[]> {
   return parsed.data;
 }
 
-export async function fetchOrders(): Promise<Order[]> {
+async function fetchOrdersRaw(): Promise<Order[]> {
   if (useMock || !supabase) return ORDERS;
 
   // Supabase PostgREST default limit ist 1000. Bei ~27k Demo-Orders
-  // paginieren wir in 1000er-Chunks bis alle geladen sind.
+  // paginieren wir in parallelen 1000er-Chunks für deutlich schnelleres Laden.
   const PAGE = 1000;
+  const MAX_ROWS = 200_000;
+  const ranges: Array<[number, number]> = [];
+  for (let from = 0; from < MAX_ROWS; from += PAGE) {
+    ranges.push([from, from + PAGE - 1]);
+  }
+
+  // Erst einen Count-Query, um genau nur so viele Chunks zu laden wie nötig
+  const { count } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true });
+
+  const totalNeeded = Math.min(count ?? MAX_ROWS, MAX_ROWS);
+  const chunksNeeded = Math.ceil(totalNeeded / PAGE);
+  const activeRanges = ranges.slice(0, chunksNeeded);
+
+  // Parallel alle Chunks abrufen
+  const results = await Promise.all(
+    activeRanges.map(([from, to]) =>
+      supabase!
+        .from("orders")
+        .select("*")
+        .order("order_date", { ascending: true })
+        .range(from, to)
+    )
+  );
+
   const all: unknown[] = [];
-  let from = 0;
-  // Obergrenze als Sicherheitsnetz gegen Endlosschleifen
-  for (let i = 0; i < 200; i++) {
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("order_date", { ascending: true })
-      .range(from, from + PAGE - 1);
+  for (const { data, error } of results) {
     if (error) throw new Error(`Supabase fetchOrders: ${error.message}`);
-    if (!data || data.length === 0) break;
-    all.push(...data);
-    if (data.length < PAGE) break;
-    from += PAGE;
+    if (data) all.push(...data);
   }
 
   const parsed = OrdersSchema.safeParse(all);
@@ -149,6 +194,37 @@ export async function fetchOrders(): Promise<Order[]> {
     throw new Error("Ungültige Daten von Supabase (orders)");
   }
   return parsed.data;
+}
+
+// ─── Gecachte Fetcher ─────────────────────────────────────
+// React.cache: per-request Dedup (wenn dieselbe Funktion während eines
+// Request-Renderings mehrfach aufgerufen wird)
+// memCache: cross-request TTL-Cache pro Serverless-Instance
+
+export const fetchInfluencers = cache(async (): Promise<Influencer[]> => {
+  const cached = getMemCache<Influencer[]>("influencers");
+  if (cached) return cached;
+  const data = await fetchInfluencersRaw();
+  setMemCache("influencers", data);
+  return data;
+});
+
+export const fetchOrders = cache(async (): Promise<Order[]> => {
+  const cached = getMemCache<Order[]>("orders");
+  if (cached) return cached;
+  const data = await fetchOrdersRaw();
+  setMemCache("orders", data);
+  return data;
+});
+
+// ─── Cache-Invalidierung (für Webhook + API-Mutations) ────
+
+export function invalidateInfluencersCache() {
+  invalidateMemCache("influencers");
+}
+
+export function invalidateOrdersCache() {
+  invalidateMemCache("orders");
 }
 
 // ─── Influencer erstellen ──────────────────────────────────

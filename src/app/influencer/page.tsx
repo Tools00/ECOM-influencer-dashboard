@@ -6,7 +6,6 @@ import { NewInfluencerButton } from "@/components/NewInfluencerModal";
 import { InfluencerListClient } from "@/components/InfluencerListClient";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export default async function InfluencerListPage() {
   const [influencers, orders] = await Promise.all([

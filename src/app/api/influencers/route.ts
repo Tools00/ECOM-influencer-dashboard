@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchInfluencers, fetchOrders, createInfluencer } from "@/lib/supabase";
+import { fetchInfluencers, fetchOrders, createInfluencer, invalidateInfluencersCache } from "@/lib/supabase";
 import {
   computeInfluencerStats,
   computeDashboardSummary,
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     const influencer = await createInfluencer(body);
+    invalidateInfluencersCache();
     return NextResponse.json({ influencer }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

@@ -1,13 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Users, X, Plus, Check, Tag as TagIcon, Search, ChevronDown } from "lucide-react";
+import {
+  Users, X, Plus, Check, Tag as TagIcon, Search, ChevronDown,
+  LayoutGrid, List, Columns3, ArrowUpDown,
+} from "lucide-react";
 import { InfluencerStats, Platform } from "@/lib/types";
 import { PlatformBadge } from "./PlatformBadge";
 import { formatEUR, formatPct, formatCompact } from "@/lib/formatters";
 import { BUILTIN_TAGS, TAG_COLORS } from "@/lib/constants";
+
+type ViewMode = "cards" | "table" | "kanban";
+const VIEW_MODE_KEY = "influencer-view-mode";
 
 type SortKey =
   | "roi"
@@ -69,6 +75,20 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
   const [sortKey, setSortKey]       = useState<SortKey>("roi");
   const [sortDir, setSortDir]       = useState<"desc" | "asc">("desc");
   const [editingId, setEditingId]   = useState<string | null>(null);
+  const [viewMode, setViewMode]     = useState<ViewMode>("cards");
+
+  // View-Mode aus localStorage laden (nur Client)
+  useEffect(() => {
+    const saved = localStorage.getItem(VIEW_MODE_KEY) as ViewMode | null;
+    if (saved === "cards" || saved === "table" || saved === "kanban") {
+      setViewMode(saved);
+    }
+  }, []);
+
+  function changeView(mode: ViewMode) {
+    setViewMode(mode);
+    localStorage.setItem(VIEW_MODE_KEY, mode);
+  }
 
   const allNiches = useMemo(
     () => Array.from(new Set(statsState.map((s) => s.influencer.niche))).sort(),
@@ -211,6 +231,29 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
 
           <div className="flex-1" />
 
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-0.5 border border-gray-200 rounded-lg p-0.5 bg-white">
+            {([
+              { key: "cards",  icon: LayoutGrid, label: "Karten"  },
+              { key: "table",  icon: List,       label: "Tabelle" },
+              { key: "kanban", icon: Columns3,   label: "Kanban"  },
+            ] as const).map(({ key, icon: Icon, label }) => (
+              <button
+                key={key}
+                onClick={() => changeView(key)}
+                title={label}
+                className={clsx(
+                  "p-1.5 rounded transition-colors",
+                  viewMode === key
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                )}
+              >
+                <Icon size={14} />
+              </button>
+            ))}
+          </div>
+
           {/* Sort */}
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-gray-400">Sortieren</span>
@@ -277,7 +320,29 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
         <span>Sortiert nach {SORT_OPTIONS.find((o) => o.key === sortKey)?.label}</span>
       </div>
 
-      {/* Cards */}
+      {/* ─── View: Tabelle ──────────────────────────────── */}
+      {viewMode === "table" && sorted.length > 0 && (
+        <TableView
+          stats={sorted}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          onSort={(k) => {
+            if (k === sortKey) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+            else { setSortKey(k); setSortDir("desc"); }
+          }}
+        />
+      )}
+
+      {/* ─── View: Kanban ──────────────────────────────── */}
+      {viewMode === "kanban" && sorted.length > 0 && (
+        <KanbanView
+          stats={sorted}
+          onTagClick={(t) => setTagFilter((prev) => toggleSet(prev, t))}
+        />
+      )}
+
+      {/* ─── View: Cards ──────────────────────────────── */}
+      {viewMode === "cards" && (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {sorted.map((s) => {
           const inf = s.influencer;
@@ -380,6 +445,7 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
           );
         })}
       </div>
+      )}
 
       {sorted.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
@@ -535,6 +601,216 @@ function TagEditor({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Table View ───────────────────────────────────────────────
+
+function TableView({
+  stats,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  stats: InfluencerStats[];
+  sortKey: SortKey;
+  sortDir: "desc" | "asc";
+  onSort: (k: SortKey) => void;
+}) {
+  const columns: { key: SortKey | "name" | "tags"; label: string; align?: "right" }[] = [
+    { key: "name",          label: "Influencer"     },
+    { key: "total_orders",  label: "Orders",  align: "right" },
+    { key: "gross_revenue", label: "Brutto",  align: "right" },
+    { key: "net_revenue",   label: "Netto",   align: "right" },
+    { key: "return_rate",   label: "Retouren", align: "right" },
+    { key: "actual_cost",   label: "Kosten",  align: "right" },
+    { key: "profit",        label: "Profit",  align: "right" },
+    { key: "roi",           label: "ROI",     align: "right" },
+    { key: "followers",     label: "Follower", align: "right" },
+    { key: "tags",          label: "Tags"     },
+  ];
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              {columns.map((c) => {
+                const sortable = c.key !== "name" && c.key !== "tags";
+                const active = sortable && c.key === sortKey;
+                return (
+                  <th
+                    key={c.key}
+                    className={clsx(
+                      "px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap",
+                      c.align === "right" ? "text-right" : "text-left",
+                      sortable && "cursor-pointer hover:bg-gray-100 select-none"
+                    )}
+                    onClick={() => sortable && onSort(c.key as SortKey)}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {c.label}
+                      {sortable && (
+                        <ArrowUpDown
+                          size={10}
+                          className={clsx(
+                            active ? "text-emerald-600" : "text-gray-300",
+                            active && sortDir === "asc" && "rotate-180"
+                          )}
+                        />
+                      )}
+                    </span>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {stats.map((s) => {
+              const inf = s.influencer;
+              return (
+                <tr key={inf.id} className={clsx("hover:bg-gray-50 transition-colors", !inf.is_active && "opacity-50")}>
+                  <td className="px-4 py-2.5">
+                    <Link href={`/influencer/${inf.id}`} className="flex items-center gap-2 group">
+                      <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-700 shrink-0">
+                        {inf.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-gray-900 group-hover:text-emerald-700 truncate">{inf.name}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-gray-400">{inf.handle}</span>
+                          <PlatformBadge platform={inf.platform} />
+                        </div>
+                      </div>
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-gray-700 tabular-nums">{s.total_orders}</td>
+                  <td className="px-4 py-2.5 text-right text-gray-700 tabular-nums">{formatEUR(s.gross_revenue)}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-gray-800 tabular-nums">{formatEUR(s.net_revenue)}</td>
+                  <td className={clsx(
+                    "px-4 py-2.5 text-right font-medium tabular-nums",
+                    s.return_rate > 25 ? "text-red-600" : s.return_rate > 15 ? "text-amber-600" : "text-gray-700"
+                  )}>{formatPct(s.return_rate)}</td>
+                  <td className="px-4 py-2.5 text-right text-gray-700 tabular-nums">{formatEUR(s.actual_cost)}</td>
+                  <td className={clsx(
+                    "px-4 py-2.5 text-right font-semibold tabular-nums",
+                    s.profit >= 0 ? "text-emerald-600" : "text-red-500"
+                  )}>{formatEUR(s.profit)}</td>
+                  <td className={clsx(
+                    "px-4 py-2.5 text-right font-semibold tabular-nums",
+                    s.roi >= 100 ? "text-emerald-600" : s.roi >= 0 ? "text-gray-700" : "text-red-500"
+                  )}>{s.roi.toFixed(0)}%</td>
+                  <td className="px-4 py-2.5 text-right text-gray-500 tabular-nums">{formatCompact(inf.followers)}</td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                      {inf.tags.slice(0, 3).map((t) => (
+                        <span key={t} className={clsx("text-[9px] font-semibold px-1.5 py-0.5 rounded-full border", tagClass(t))}>
+                          {t}
+                        </span>
+                      ))}
+                      {inf.tags.length > 3 && (
+                        <span className="text-[9px] text-gray-400">+{inf.tags.length - 3}</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Kanban View ──────────────────────────────────────────────
+
+function KanbanView({
+  stats,
+  onTagClick,
+}: {
+  stats: InfluencerStats[];
+  onTagClick: (t: string) => void;
+}) {
+  const columns: { platform: Platform; label: string; accent: string }[] = [
+    { platform: "instagram", label: "Instagram", accent: "from-pink-50 to-white border-pink-100" },
+    { platform: "tiktok",    label: "TikTok",    accent: "from-gray-100 to-white border-gray-200" },
+    { platform: "youtube",   label: "YouTube",   accent: "from-red-50 to-white border-red-100" },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {columns.map((col) => {
+        const colStats = stats.filter((s) => s.influencer.platform === col.platform);
+        const totalNet = colStats.reduce((a, s) => a + s.net_revenue, 0);
+        return (
+          <div
+            key={col.platform}
+            className={clsx("rounded-2xl border bg-gradient-to-b p-3", col.accent)}
+          >
+            <div className="flex items-center justify-between mb-3 px-1">
+              <div className="flex items-center gap-2">
+                <PlatformBadge platform={col.platform} />
+                <span className="text-xs font-semibold text-gray-700">{colStats.length}</span>
+              </div>
+              <span className="text-xs font-semibold text-gray-600 tabular-nums">{formatEUR(totalNet)}</span>
+            </div>
+            <div className="space-y-2">
+              {colStats.length === 0 && (
+                <div className="text-xs text-gray-400 text-center py-8">Keine Einträge</div>
+              )}
+              {colStats.map((s) => {
+                const inf = s.influencer;
+                return (
+                  <Link
+                    key={inf.id}
+                    href={`/influencer/${inf.id}`}
+                    className="block bg-white rounded-lg border border-gray-100 p-3 hover:border-emerald-200 hover:shadow-sm transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-sm text-gray-900 truncate">{inf.name}</div>
+                        <div className="text-[10px] text-gray-400 truncate">{inf.handle}</div>
+                      </div>
+                      <span className={clsx(
+                        "text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0",
+                        s.profit >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-50 text-red-600"
+                      )}>
+                        {s.roi.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1.5">
+                      <span className="font-semibold text-gray-700 tabular-nums">{formatEUR(s.net_revenue)}</span>
+                      <span>{s.total_orders} Orders</span>
+                      <span className={clsx(
+                        "tabular-nums",
+                        s.return_rate > 25 ? "text-red-600" : s.return_rate > 15 ? "text-amber-600" : ""
+                      )}>{formatPct(s.return_rate)}</span>
+                    </div>
+                    {inf.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {inf.tags.slice(0, 3).map((t) => (
+                          <button
+                            key={t}
+                            onClick={(e) => { e.preventDefault(); onTagClick(t); }}
+                            className={clsx(
+                              "text-[9px] font-semibold px-1.5 py-0.5 rounded-full border",
+                              tagClass(t)
+                            )}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

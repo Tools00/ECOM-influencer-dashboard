@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin, invalidateOrdersCache } from "@/lib/supabase";
 import {
   verifyShopifyHmac,
   parseReturnType,
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, skipped: topic });
     }
 
+    invalidateOrdersCache();
     return NextResponse.json({ ok: true, topic });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unbekannter Fehler";

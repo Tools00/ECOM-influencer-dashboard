@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Compensation } from "@/lib/types";
-import { updateCompensation } from "@/lib/supabase";
+import { updateCompensation, invalidateInfluencersCache } from "@/lib/supabase";
 
 export async function PATCH(
   req: NextRequest,
@@ -16,6 +16,7 @@ export async function PATCH(
 
   try {
     await updateCompensation(id, body);
+    invalidateInfluencersCache();
     return NextResponse.json({ success: true, influencer_id: id, compensation: body });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
