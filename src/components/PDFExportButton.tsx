@@ -217,18 +217,20 @@ export function PDFExportButton({ report }: Props) {
     // Footer page 1
     drawFooter(doc, 1, pageW, pageH, margin);
 
-    // ── Page 2+: Influencer-Tabelle ──────────────────────────
-    doc.addPage();
+    // ── Page 2+: Influencer-Tabelle (landscape) ──────────────
+    doc.addPage("a4", "landscape");
+    const pageW2 = doc.internal.pageSize.getWidth();
+    const pageH2 = doc.internal.pageSize.getHeight();
 
     doc.setFillColor(...C_PRIMARY_BG);
-    doc.rect(0, 0, pageW, 18, "F");
+    doc.rect(0, 0, pageW2, 18, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(...C_PRIMARY);
     doc.text("Influencer-Performance", margin, 12);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(monthLabel(report.month), pageW - margin, 12, { align: "right" });
+    doc.text(monthLabel(report.month), pageW2 - margin, 12, { align: "right" });
 
     const sortedStats = [...report.stats].sort((a, b) => b.net_revenue - a.net_revenue);
     const tableBody = sortedStats.map((s) => {
@@ -286,15 +288,15 @@ export function PDFExportButton({ report }: Props) {
         fontSize:  8,
       },
       columnStyles: {
-        0: { cellWidth: 32, fontStyle: "bold" },
-        1: { cellWidth: 18 },
-        2: { cellWidth: 14, halign: "right" },
-        3: { cellWidth: 22, halign: "right" },
-        4: { cellWidth: 14, halign: "right" },
-        5: { cellWidth: 20, halign: "right" },
-        6: { cellWidth: 22, halign: "right" },
-        7: { cellWidth: 14, halign: "right" },
-        8: { cellWidth: 22, halign: "right" },
+        0: { cellWidth: 45, fontStyle: "bold" },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 18, halign: "right" },
+        3: { cellWidth: 28, halign: "right" },
+        4: { cellWidth: 18, halign: "right" },
+        5: { cellWidth: 26, halign: "right" },
+        6: { cellWidth: 28, halign: "right" },
+        7: { cellWidth: 18, halign: "right" },
+        8: { cellWidth: 28, halign: "right" },
       },
       alternateRowStyles: { fillColor: [249, 250, 251] },
       didParseCell: (data) => {
@@ -325,7 +327,7 @@ export function PDFExportButton({ report }: Props) {
       },
       didDrawPage: () => {
         const pageNum = doc.getCurrentPageInfo().pageNumber;
-        drawFooter(doc, pageNum, pageW, pageH, margin);
+        drawFooter(doc, pageNum, pageW2, pageH2, margin);
       },
     });
 
