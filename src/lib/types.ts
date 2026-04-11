@@ -32,6 +32,7 @@ export interface Influencer {
   compensation: Compensation;
   is_active: boolean;            // false = inaktiv / Kampagne beendet
   contract_start_date?: string;  // ISO "YYYY-MM-DD"
+  tags: string[];                // Built-in + custom Tags (z.B. "VIP", "Risiko")
 }
 
 export interface Order {

@@ -16,7 +16,7 @@ export const INFLUENCERS: Influencer[] = [
       fixed_eur: 500,
       start_date: "2024-01-01",
     },
-    is_active: true,
+    is_active: true, tags: [],
     contract_start_date: "2024-01-01",
   },
   {
@@ -33,7 +33,7 @@ export const INFLUENCERS: Influencer[] = [
       commission_pct: 12,
       start_date: "2024-01-01",
     },
-    is_active: true,
+    is_active: true, tags: [],
     contract_start_date: "2024-01-01",
   },
   {
@@ -52,7 +52,7 @@ export const INFLUENCERS: Influencer[] = [
       commission_pct: 8,
       start_date: "2024-01-01",
     },
-    is_active: true,
+    is_active: true, tags: [],
     contract_start_date: "2024-01-01",
   },
   {
@@ -70,7 +70,7 @@ export const INFLUENCERS: Influencer[] = [
       posts_count: 3,
       start_date: "2024-01-01",
     },
-    is_active: true,
+    is_active: true, tags: [],
     contract_start_date: "2024-01-01",
   },
   {
@@ -89,7 +89,7 @@ export const INFLUENCERS: Influencer[] = [
       commission_pct: 5,
       start_date: "2024-01-01",
     },
-    is_active: true,
+    is_active: true, tags: [],
     contract_start_date: "2024-01-01",
   },
 ];

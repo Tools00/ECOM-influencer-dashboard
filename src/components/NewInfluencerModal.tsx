@@ -161,6 +161,7 @@ function InfluencerFormModal({ editInfluencer, onClose, onSaved }: ModalProps) {
       campaign_name:       form.campaign_name.trim(),
       contract_start_date: form.contract_start_date || undefined,
       is_active:           editInfluencer?.is_active ?? true,
+      tags:                editInfluencer?.tags ?? [],
       compensation,
     };
 

@@ -8,7 +8,7 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function EinstellungenPage() {
+export default async function SystemPage() {
   const [influencers, orders] = await Promise.all([fetchInfluencers(), fetchOrders()]);
 
   const activeInfluencers = influencers.filter((i) => i.is_active).length;
@@ -19,7 +19,7 @@ export default async function EinstellungenPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <Header>
-        <h1 className="text-sm font-semibold text-gray-800">Einstellungen</h1>
+        <h1 className="text-sm font-semibold text-gray-800">System &amp; Integrationen</h1>
       </Header>
 
       <main className="flex-1 overflow-y-auto bg-gray-50 px-6 py-6 space-y-5">
@@ -161,7 +161,7 @@ export default async function EinstellungenPage() {
         </div>
 
         <p className="text-center text-xs text-gray-300 pt-2 max-w-2xl">
-          Influencer Dashboard v3.0 · Sprint 3B aktiv · DACH E-Commerce
+          Influencer Dashboard · System-Status &amp; Integrationen · DACH E-Commerce
         </p>
       </main>
     </div>

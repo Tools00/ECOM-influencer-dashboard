@@ -3,7 +3,7 @@ import {
   Users,
   Megaphone,
   FileText,
-  Settings,
+  Activity,
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -11,7 +11,7 @@ export const NAV_ITEMS = [
   { href: "/influencer", label: "Influencer", icon: Users },
   { href: "/kampagnen", label: "Kampagnen", icon: Megaphone },
   { href: "/monatsabschluss", label: "Monatsabschluss", icon: FileText },
-  { href: "/einstellungen", label: "Einstellungen", icon: Settings },
+  { href: "/system", label: "System", icon: Activity },
 ] as const;
 
 export const DACH_RETURN_BENCHMARKS: Record<string, number> = {
@@ -64,3 +64,23 @@ export const REFERENCE_DATE_MOCK = "2024-03-31";
 
 /** Aktuelles Datum — wird für Live-Daten als Referenz verwendet */
 export const REFERENCE_DATE = new Date().toISOString().split("T")[0];
+
+/** Built-in Tags — vorgeschlagen, aber freie Tags sind erlaubt */
+export const BUILTIN_TAGS = [
+  "VIP",
+  "Top Performer",
+  "Risiko",
+  "Pause",
+  "Neu",
+  "Langzeit-Partner",
+] as const;
+
+/** Farbschema für bekannte Tags */
+export const TAG_COLORS: Record<string, string> = {
+  "VIP":              "bg-purple-100 text-purple-700 border-purple-200",
+  "Top Performer":    "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "Risiko":           "bg-red-100 text-red-700 border-red-200",
+  "Pause":            "bg-gray-100 text-gray-600 border-gray-200",
+  "Neu":              "bg-blue-100 text-blue-700 border-blue-200",
+  "Langzeit-Partner": "bg-amber-100 text-amber-700 border-amber-200",
+};

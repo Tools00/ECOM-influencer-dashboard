@@ -46,6 +46,7 @@ const InfluencerRowSchema = z.object({
   comp_per_post_eur:    z.number().nullable().optional(),
   comp_posts_count:     z.number().int().nullable().optional(),
   comp_start_date:      z.string().nullable().optional(),
+  tags:                 z.array(z.string()).nullable().optional(),
 }).transform((row): Influencer => ({
   id:                   row.id,
   name:                 row.name,
@@ -57,6 +58,7 @@ const InfluencerRowSchema = z.object({
   campaign_name:        row.campaign_name,
   is_active:            row.is_active,
   contract_start_date:  row.contract_start_date ?? undefined,
+  tags:                 row.tags ?? [],
   compensation: {
     type:           row.comp_type,
     interval:       row.comp_interval ?? undefined,
@@ -179,6 +181,7 @@ export async function createInfluencer(
     comp_per_post_eur:   compensation.per_post_eur ?? null,
     comp_posts_count:    compensation.posts_count ?? null,
     comp_start_date:     compensation.start_date ?? null,
+    tags:                influencer.tags ?? [],
   };
 
   const { data, error } = await supabase
@@ -238,10 +241,27 @@ export async function updateInfluencer(
       comp_per_post_eur:   compensation.per_post_eur ?? null,
       comp_posts_count:    compensation.posts_count ?? null,
       comp_start_date:     compensation.start_date ?? null,
+      tags:                influencer.tags ?? [],
     })
     .eq("id", influencerId);
 
   if (error) throw new Error(`Supabase updateInfluencer: ${error.message}`);
+}
+
+// ─── Tags isoliert updaten ────────────────────────────────
+
+export async function updateInfluencerTags(
+  influencerId: string,
+  tags: string[]
+): Promise<void> {
+  if (useMock || !supabase) return;
+
+  const { error } = await supabase
+    .from("influencers")
+    .update({ tags })
+    .eq("id", influencerId);
+
+  if (error) throw new Error(`Supabase updateInfluencerTags: ${error.message}`);
 }
 
 // ─── Compensation Update (für CompensationEditor) ──────────

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Printer, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { MonthlyReport } from "@/lib/analytics";
 import { formatEUR, formatPct } from "@/lib/formatters";
 import { ExcelExportButton } from "./ExcelExportButton";
+import { PDFExportButton } from "./PDFExportButton";
 import clsx from "clsx";
 
 interface Props {
@@ -82,13 +83,7 @@ export function MonatsabschlussClient({ report }: Props) {
           {/* Export-Buttons */}
           <ExcelExportButton report={report} variant="kompakt" />
           <ExcelExportButton report={report} variant="vollstaendig" />
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-all"
-          >
-            <Printer size={13} />
-            PDF
-          </button>
+          <PDFExportButton report={report} />
         </div>
       </header>
 
