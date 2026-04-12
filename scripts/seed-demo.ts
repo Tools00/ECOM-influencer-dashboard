@@ -264,7 +264,7 @@ for (let dayOffset = 0; dayOffset < DAYS; dayOffset++) {
       const oid = `ord_demo_${String(orderId++).padStart(6, "0")}`;
 
       // Nische-gewichtete Kategorie
-      const category = weightedPick(infCfg.niches);
+      const category = weightedPick(infCfg.niches as Record<string, number>);
 
       // Bestellwert: avg ± 40%
       const grossRaw = infCfg.avg_order_eur * randFloat(0.6, 1.4);
