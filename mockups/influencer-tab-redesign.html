@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>Influencer-Tab Redesign Mockups</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .mock-section { scroll-margin-top: 2rem; }
+</style>
+</head>
+<body class="bg-gray-50 p-8">
+<div class="max-w-6xl mx-auto space-y-12">
+
+  <header class="border-b border-gray-200 pb-4">
+    <h1 class="text-2xl font-bold text-gray-900">Influencer-Tab — Design-Vorschläge</h1>
+    <p class="text-sm text-gray-500 mt-1">3 Verbesserungen visuell als Mockup. Nicht der echte Code, nur zur Abstimmung.</p>
+  </header>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <!-- 1. VORHER / NACHHER Filter-Bar -->
+  <!-- ────────────────────────────────────────────────────────── -->
+  <section class="mock-section">
+    <h2 class="text-lg font-semibold text-gray-800 mb-1">① Segmented Control + Sticky Filter-Bar</h2>
+    <p class="text-sm text-gray-500 mb-4">Filter bleibt beim Scrollen oben kleben. View-Toggle als zusammenhängender Segmented Control statt 3 Icon-Buttons.</p>
+
+    <!-- VORHER -->
+    <div class="mb-3">
+      <p class="text-xs uppercase tracking-wide text-gray-400 mb-2">Vorher</p>
+      <div class="bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-2 shadow-sm">
+        <input placeholder="Suche..." class="flex-1 text-xs px-3 py-1.5 border border-gray-200 rounded-md bg-gray-50" disabled />
+        <select class="text-xs px-2 py-1.5 border border-gray-200 rounded-md bg-white"><option>Alle Plattformen</option></select>
+        <select class="text-xs px-2 py-1.5 border border-gray-200 rounded-md bg-white"><option>Alle Nischen</option></select>
+        <div class="flex gap-1 ml-2">
+          <button class="w-8 h-8 border border-gray-200 rounded-md bg-white flex items-center justify-center">⊞</button>
+          <button class="w-8 h-8 border border-gray-200 rounded-md bg-white flex items-center justify-center">☰</button>
+          <button class="w-8 h-8 border border-gray-200 rounded-md bg-white flex items-center justify-center">▭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NACHHER -->
+    <div>
+      <p class="text-xs uppercase tracking-wide text-emerald-600 mb-2">Nachher</p>
+      <div class="sticky top-0 z-10 backdrop-blur-lg bg-white/80 rounded-xl border border-gray-200 shadow-sm p-3 flex items-center gap-3">
+        <input placeholder="Suche Influencer, Code, Handle..." class="flex-1 text-xs px-3 py-2 border border-gray-200 rounded-lg bg-gray-50/80 focus:bg-white" disabled />
+        <select class="text-xs px-3 py-2 border border-gray-200 rounded-lg bg-white"><option>Alle Plattformen</option></select>
+        <select class="text-xs px-3 py-2 border border-gray-200 rounded-lg bg-white"><option>Alle Nischen</option></select>
+
+        <!-- Segmented Control -->
+        <div class="flex bg-gray-100 rounded-lg p-0.5 ml-2">
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md bg-white shadow-sm text-gray-900 flex items-center gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Cards
+          </button>
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-800 flex items-center gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Tabelle
+          </button>
+          <button class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-800 flex items-center gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="12"/><rect x="17" y="3" width="5" height="18"/></svg>
+            Kanban
+          </button>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 italic mt-2">↑ Bleibt beim Scrollen oben sichtbar (sticky + backdrop-blur)</p>
+    </div>
+  </section>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <!-- 2. CARD REDESIGN -->
+  <!-- ────────────────────────────────────────────────────────── -->
+  <section class="mock-section">
+    <h2 class="text-lg font-semibold text-gray-800 mb-1">② Card-Redesign mit klarer Info-Hierarchie</h2>
+    <p class="text-sm text-gray-500 mb-4">Hero-Metric groß (Netto-Umsatz + Trend), darunter Mini-KPIs, ROI-Ampel rechts oben, Tags unten.</p>
+
+    <div class="grid grid-cols-3 gap-4">
+      <!-- VORHER -->
+      <div>
+        <p class="text-xs uppercase tracking-wide text-gray-400 mb-2">Vorher</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <p class="text-sm font-semibold text-gray-800">Emma Fashionista</p>
+          <p class="text-xs text-gray-400">@emma_fash · Instagram</p>
+          <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+            <div class="text-gray-500">Orders: <span class="text-gray-800">142</span></div>
+            <div class="text-gray-500">Brutto: <span class="text-gray-800">39.760 €</span></div>
+            <div class="text-gray-500">Netto: <span class="text-gray-800">28.210 €</span></div>
+            <div class="text-gray-500">ROI: <span class="text-gray-800">3.2×</span></div>
+            <div class="text-gray-500">Retour: <span class="text-gray-800">29%</span></div>
+            <div class="text-gray-500">Kosten: <span class="text-gray-800">8.800 €</span></div>
+          </div>
+          <div class="flex gap-1 mt-3">
+            <span class="text-xs px-2 py-0.5 bg-gray-100 rounded">VIP</span>
+            <span class="text-xs px-2 py-0.5 bg-gray-100 rounded">Fashion</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NACHHER - gut -->
+      <div>
+        <p class="text-xs uppercase tracking-wide text-emerald-600 mb-2">Nachher (Top-Performer)</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative">
+          <!-- ROI Ampel -->
+          <div class="absolute top-4 right-4 flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+            <span class="text-xs font-bold text-emerald-700">3.2× ROI</span>
+          </div>
+
+          <!-- Avatar + Name -->
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white text-sm font-bold">EF</div>
+            <div>
+              <p class="text-sm font-semibold text-gray-900 leading-tight">Emma Fashionista</p>
+              <p class="text-xs text-gray-400">@emma_fash · Instagram</p>
+            </div>
+          </div>
+
+          <!-- Hero Metric -->
+          <div class="mb-4">
+            <p class="text-xs text-gray-400 uppercase tracking-wide">Netto-Umsatz</p>
+            <div class="flex items-baseline gap-2">
+              <p class="text-2xl font-bold text-gray-900">28.210 €</p>
+              <span class="text-xs font-semibold text-emerald-600 flex items-center">↑ 12%</span>
+            </div>
+          </div>
+
+          <!-- Mini-KPIs -->
+          <div class="grid grid-cols-3 gap-2 pb-3 border-b border-gray-100">
+            <div>
+              <p class="text-xs text-gray-400">Orders</p>
+              <p class="text-sm font-semibold text-gray-800">142</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400">Retouren</p>
+              <p class="text-sm font-semibold text-amber-600">29%</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400">Profit</p>
+              <p class="text-sm font-semibold text-emerald-700">19.4k</p>
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="flex gap-1 mt-3 flex-wrap">
+            <span class="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-medium">⭐ VIP</span>
+            <span class="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-medium">Top Performer</span>
+            <span class="text-xs px-2 py-0.5 bg-pink-50 text-pink-700 rounded-full font-medium">Fashion</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NACHHER - schlecht -->
+      <div>
+        <p class="text-xs uppercase tracking-wide text-emerald-600 mb-2">Nachher (Risiko)</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative">
+          <div class="absolute top-4 right-4 flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-2.5 py-1">
+            <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+            <span class="text-xs font-bold text-red-700">0.8× ROI</span>
+          </div>
+
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-sm font-bold">TT</div>
+            <div>
+              <p class="text-sm font-semibold text-gray-900 leading-tight">FashFinds</p>
+              <p class="text-xs text-gray-400">@fashfinds · TikTok</p>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <p class="text-xs text-gray-400 uppercase tracking-wide">Netto-Umsatz</p>
+            <div class="flex items-baseline gap-2">
+              <p class="text-2xl font-bold text-gray-900">4.820 €</p>
+              <span class="text-xs font-semibold text-red-600 flex items-center">↓ 31%</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pb-3 border-b border-gray-100">
+            <div>
+              <p class="text-xs text-gray-400">Orders</p>
+              <p class="text-sm font-semibold text-gray-800">38</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400">Retouren</p>
+              <p class="text-sm font-semibold text-red-600">42%</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400">Profit</p>
+              <p class="text-sm font-semibold text-red-600">-1.2k</p>
+            </div>
+          </div>
+
+          <div class="flex gap-1 mt-3 flex-wrap">
+            <span class="text-xs px-2 py-0.5 bg-red-50 text-red-700 rounded-full font-medium">⚠ Risiko</span>
+            <span class="text-xs px-2 py-0.5 bg-pink-50 text-pink-700 rounded-full font-medium">Fashion</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <!-- 3. KANBAN + TAGS -->
+  <!-- ────────────────────────────────────────────────────────── -->
+  <section class="mock-section">
+    <h2 class="text-lg font-semibold text-gray-800 mb-1">③ Kanban-View mit Drag-to-Tag (Bonus)</h2>
+    <p class="text-sm text-gray-500 mb-4">Influencer per Drag &amp; Drop zwischen Performance-Spalten ziehen → automatisch Tag setzen.</p>
+
+    <div class="grid grid-cols-3 gap-4">
+      <!-- Top -->
+      <div class="bg-emerald-50 rounded-xl border border-emerald-200 p-3">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+            <p class="text-xs font-bold text-emerald-800 uppercase tracking-wide">Top Performer</p>
+          </div>
+          <span class="text-xs text-emerald-600 font-semibold">8</span>
+        </div>
+        <div class="space-y-2">
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-emerald-100">
+            <p class="text-xs font-semibold text-gray-800">Emma Fashionista</p>
+            <p class="text-xs text-gray-400">28.2k € · 3.2× ROI</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-emerald-100">
+            <p class="text-xs font-semibold text-gray-800">TechCheckDE</p>
+            <p class="text-xs text-gray-400">42.1k € · 4.1× ROI</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-emerald-100 border-dashed opacity-60">
+            <p class="text-xs text-gray-400 italic">⟵ hierher ziehen</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mid -->
+      <div class="bg-amber-50 rounded-xl border border-amber-200 p-3">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+            <p class="text-xs font-bold text-amber-800 uppercase tracking-wide">Mid</p>
+          </div>
+          <span class="text-xs text-amber-600 font-semibold">14</span>
+        </div>
+        <div class="space-y-2">
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-amber-100">
+            <p class="text-xs font-semibold text-gray-800">Lena Style</p>
+            <p class="text-xs text-gray-400">14.8k € · 2.1× ROI</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-amber-100">
+            <p class="text-xs font-semibold text-gray-800">BeauByBea</p>
+            <p class="text-xs text-gray-400">9.2k € · 1.8× ROI</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk -->
+      <div class="bg-red-50 rounded-xl border border-red-200 p-3">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-red-500"></div>
+            <p class="text-xs font-bold text-red-800 uppercase tracking-wide">Risiko / Pause</p>
+          </div>
+          <span class="text-xs text-red-600 font-semibold">8</span>
+        </div>
+        <div class="space-y-2">
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-red-100 ring-2 ring-red-300">
+            <p class="text-xs font-semibold text-gray-800">FashFinds</p>
+            <p class="text-xs text-gray-400">4.8k € · 0.8× ROI</p>
+            <p class="text-xs text-red-500 mt-1">↓ wird gerade gezogen</p>
+          </div>
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-red-100">
+            <p class="text-xs font-semibold text-gray-800">AllMixMia</p>
+            <p class="text-xs text-gray-400">3.2k € · 0.6× ROI</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-xs text-gray-400 italic mt-3">Beim Drop: Tag wird automatisch aktualisiert + PATCH an Supabase (optimistic UI).</p>
+  </section>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <footer class="border-t border-gray-200 pt-6 mt-12">
+    <p class="text-sm text-gray-600">
+      <strong>Umsetzungs-Aufwand:</strong> ① Sticky + Segmented ≈ 15 Min &nbsp;·&nbsp;
+      ② Card-Redesign ≈ 25 Min &nbsp;·&nbsp;
+      ③ Kanban Drag-Drop ≈ 45 Min (separater Commit)
+    </p>
+    <p class="text-sm text-gray-500 mt-2">
+      Wenn du zurück aus der Fork-Session bist, sag welche du willst (1+2, 1+2+3, oder nur einzelne).
+    </p>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -5,12 +5,40 @@ import Link from "next/link";
 import clsx from "clsx";
 import {
   Users, X, Plus, Check, Tag as TagIcon, Search, ChevronDown,
-  LayoutGrid, List, Columns3, ArrowUpDown,
+  LayoutGrid, List, Columns3, ArrowUpDown, TrendingUp, TrendingDown,
 } from "lucide-react";
 import { InfluencerStats, Platform } from "@/lib/types";
 import { PlatformBadge } from "./PlatformBadge";
 import { formatEUR, formatPct, formatCompact } from "@/lib/formatters";
 import { BUILTIN_TAGS, TAG_COLORS } from "@/lib/constants";
+
+// ─── Visual helpers ───────────────────────────────────────────
+
+const PLATFORM_AVATAR: Record<Platform, string> = {
+  instagram: "from-fuchsia-500 via-pink-500 to-orange-400",
+  tiktok:    "from-slate-700 via-gray-800 to-black",
+  youtube:   "from-red-500 via-red-600 to-red-700",
+};
+
+function avatarInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+type RoiTier = "top" | "mid" | "risk";
+
+function roiTier(roi: number): RoiTier {
+  if (roi >= 200) return "top";
+  if (roi >= 100) return "mid";
+  return "risk";
+}
+
+const ROI_TIER_STYLE: Record<RoiTier, { badge: string; dot: string; ring: string }> = {
+  top:  { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", ring: "ring-emerald-200" },
+  mid:  { badge: "bg-amber-50  text-amber-700  border-amber-200",    dot: "bg-amber-500",   ring: "ring-amber-200"   },
+  risk: { badge: "bg-red-50    text-red-700    border-red-200",      dot: "bg-red-500",     ring: "ring-red-200"     },
+};
 
 type ViewMode = "cards" | "table" | "kanban";
 const VIEW_MODE_KEY = "influencer-view-mode";
@@ -172,8 +200,9 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
 
   return (
     <div className="space-y-5">
-      {/* Filter Bar */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+      {/* Filter Bar — sticky beim Scrollen */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-2 bg-gray-50/80 backdrop-blur-lg">
+      <div className="bg-white/90 rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex flex-wrap items-center gap-2">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px] max-w-xs">
@@ -231,8 +260,8 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
 
           <div className="flex-1" />
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-0.5 border border-gray-200 rounded-lg p-0.5 bg-white">
+          {/* View Mode — Segmented Control */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
             {([
               { key: "cards",  icon: LayoutGrid, label: "Karten"  },
               { key: "table",  icon: List,       label: "Tabelle" },
@@ -241,15 +270,15 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
               <button
                 key={key}
                 onClick={() => changeView(key)}
-                title={label}
                 className={clsx(
-                  "p-1.5 rounded transition-colors",
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all",
                   viewMode === key
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-800"
                 )}
               >
-                <Icon size={14} />
+                <Icon size={13} />
+                {label}
               </button>
             ))}
           </div>
@@ -310,6 +339,7 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
           })}
         </div>
       </div>
+      </div>
 
       {/* Result count */}
       <div className="flex items-center justify-between text-xs text-gray-400">
@@ -338,6 +368,7 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
         <KanbanView
           stats={sorted}
           onTagClick={(t) => setTagFilter((prev) => toggleSet(prev, t))}
+          onMoveToTier={(infId, newTags) => persistTags(infId, newTags)}
         />
       )}
 
@@ -347,39 +378,84 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
         {sorted.map((s) => {
           const inf = s.influencer;
           const isEditing = editingId === inf.id;
+          const tier = roiTier(s.roi);
+          const tierStyle = ROI_TIER_STYLE[tier];
+          const profitTrend = s.profit >= 0 ? "up" : "down";
           return (
             <div
               key={inf.id}
               className={clsx(
-                "bg-white rounded-2xl border shadow-sm p-5 transition-all",
+                "group relative bg-white rounded-2xl border shadow-sm p-5 transition-all duration-200",
                 inf.is_active ? "border-gray-100" : "border-gray-200 opacity-70",
-                "hover:border-emerald-200 hover:shadow-md"
+                "hover:shadow-lg hover:-translate-y-0.5 hover:border-gray-200"
               )}
             >
-              {/* Header */}
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <Link href={`/influencer/${inf.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-700 shrink-0">
-                    {inf.name.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-semibold text-gray-900 text-sm truncate">{inf.name}</div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-xs text-gray-400 truncate">{inf.handle}</span>
-                      <PlatformBadge platform={inf.platform} />
-                    </div>
-                  </div>
-                </Link>
-                <span className={clsx(
-                  "text-xs font-semibold px-2.5 py-1 rounded-full shrink-0",
-                  s.profit >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-50 text-red-600"
+              {/* ROI Ampel — top right */}
+              <div className={clsx(
+                "absolute top-4 right-4 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border",
+                tierStyle.badge
+              )}>
+                <div className={clsx("w-1.5 h-1.5 rounded-full", tierStyle.dot)} />
+                <span className="text-xs font-bold tabular-nums">{s.roi.toFixed(0)}% ROI</span>
+              </div>
+
+              {/* Avatar + Name */}
+              <Link href={`/influencer/${inf.id}`} className="flex items-center gap-3 mb-4 pr-24">
+                <div className={clsx(
+                  "w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm",
+                  PLATFORM_AVATAR[inf.platform]
                 )}>
-                  ROI {s.roi.toFixed(0)}%
-                </span>
+                  {avatarInitials(inf.name)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-gray-900 text-sm leading-tight truncate group-hover:text-emerald-700 transition-colors">
+                    {inf.name}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-xs text-gray-400 truncate">{inf.handle}</span>
+                    <PlatformBadge platform={inf.platform} />
+                  </div>
+                </div>
+              </Link>
+
+              {/* Hero Metric */}
+              <div className="mb-4">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Netto-Umsatz</p>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{formatEUR(s.net_revenue)}</p>
+                  <span className={clsx(
+                    "inline-flex items-center gap-0.5 text-xs font-semibold",
+                    profitTrend === "up" ? "text-emerald-600" : "text-red-500"
+                  )}>
+                    {profitTrend === "up" ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                    {formatEUR(s.profit)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Mini-KPIs */}
+              <div className="grid grid-cols-3 gap-2 pb-3 border-b border-gray-100">
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Orders</p>
+                  <p className="text-sm font-semibold text-gray-800 tabular-nums">{s.total_orders}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Retouren</p>
+                  <p className={clsx(
+                    "text-sm font-semibold tabular-nums",
+                    s.return_rate > 25 ? "text-red-600" : s.return_rate > 15 ? "text-amber-600" : "text-gray-800"
+                  )}>
+                    {formatPct(s.return_rate)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Kosten</p>
+                  <p className="text-sm font-semibold text-gray-800 tabular-nums">{formatEUR(s.actual_cost)}</p>
+                </div>
               </div>
 
               {/* Tags */}
-              <div className="flex flex-wrap items-center gap-1 mb-3 min-h-[24px]">
+              <div className="flex flex-wrap items-center gap-1 mt-3 min-h-[22px]">
                 {inf.tags.map((tag) => (
                   <button
                     key={tag}
@@ -404,39 +480,20 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
 
               {/* Tag-Editor */}
               {isEditing && (
-                <TagEditor
-                  current={inf.tags}
-                  allTags={allTags}
-                  onChange={(next) => persistTags(inf.id, next)}
-                />
+                <div className="mt-3">
+                  <TagEditor
+                    current={inf.tags}
+                    allTags={allTags}
+                    onChange={(next) => persistTags(inf.id, next)}
+                  />
+                </div>
               )}
 
-              {/* Stats grid */}
-              <div className="grid grid-cols-3 gap-3 text-center mb-3">
-                <div>
-                  <div className="text-xs text-gray-400">Netto</div>
-                  <div className="text-sm font-bold text-gray-800 mt-0.5">{formatEUR(s.net_revenue)}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400">Retouren</div>
-                  <div className={clsx(
-                    "text-sm font-bold mt-0.5",
-                    s.return_rate > 25 ? "text-red-600" : s.return_rate > 15 ? "text-amber-600" : "text-gray-800"
-                  )}>
-                    {formatPct(s.return_rate)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400">Orders</div>
-                  <div className="text-sm font-bold text-gray-800 mt-0.5">{s.total_orders}</div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-50">
+              {/* Footer — Code + Followers + Campaign */}
+              <div className="flex items-center justify-between text-xs text-gray-400 pt-3 mt-3 border-t border-gray-50">
                 <div className="flex items-center gap-1">
                   <Users size={11} />
-                  {formatCompact(inf.followers)}
+                  <span className="tabular-nums">{formatCompact(inf.followers)}</span>
                 </div>
                 <span className="text-gray-300 truncate max-w-[100px]">{inf.campaign_name}</span>
                 <span className="font-mono text-emerald-600">{inf.discount_code}</span>
@@ -724,87 +781,230 @@ function TableView({
   );
 }
 
-// ─── Kanban View ──────────────────────────────────────────────
+// ─── Kanban View (Performance-Tier mit Drag-to-Tag) ──────────
+
+type KanbanTier = "top" | "mid" | "risk";
+
+interface KanbanColumn {
+  tier: KanbanTier;
+  label: string;
+  hint: string;
+  addTag: string | null;      // Tag der gesetzt wird beim Drop
+  removeTag: string | null;   // Tag der entfernt wird beim Drop
+  container: string;
+  header: string;
+  dot: string;
+  count: string;
+}
+
+const KANBAN_COLUMNS: KanbanColumn[] = [
+  {
+    tier: "top",
+    label: "Top Performer",
+    hint: "ROI ≥ 200%",
+    addTag: "Top Performer",
+    removeTag: "Risiko",
+    container: "bg-emerald-50/60 border-emerald-200",
+    header: "text-emerald-800",
+    dot: "bg-emerald-500",
+    count: "text-emerald-600",
+  },
+  {
+    tier: "mid",
+    label: "Mid",
+    hint: "ROI 100–200%",
+    addTag: null,
+    removeTag: "Top Performer", // Risiko bleibt erhalten, da Mid neutral ist
+    container: "bg-amber-50/60 border-amber-200",
+    header: "text-amber-800",
+    dot: "bg-amber-500",
+    count: "text-amber-600",
+  },
+  {
+    tier: "risk",
+    label: "Risiko / Pause",
+    hint: "ROI < 100%",
+    addTag: "Risiko",
+    removeTag: "Top Performer",
+    container: "bg-red-50/60 border-red-200",
+    header: "text-red-800",
+    dot: "bg-red-500",
+    count: "text-red-600",
+  },
+];
+
+/** Tier aus aktuellen Tags ODER (Fallback) aus ROI ableiten.
+ *  Manuelle Tags haben Vorrang, damit User-Zuweisungen sticky sind. */
+function resolveTier(tags: string[], roi: number): KanbanTier {
+  if (tags.includes("Top Performer")) return "top";
+  if (tags.includes("Risiko")) return "risk";
+  return roiTier(roi);
+}
+
+function applyTierChange(
+  currentTags: string[],
+  col: KanbanColumn
+): string[] {
+  const set = new Set(currentTags);
+  if (col.removeTag) set.delete(col.removeTag);
+  if (col.addTag) set.add(col.addTag);
+  // "Mid" entfernt beide Tier-Tags explizit
+  if (col.tier === "mid") {
+    set.delete("Top Performer");
+    set.delete("Risiko");
+  }
+  return Array.from(set);
+}
 
 function KanbanView({
   stats,
   onTagClick,
+  onMoveToTier,
 }: {
   stats: InfluencerStats[];
   onTagClick: (t: string) => void;
+  onMoveToTier: (influencerId: string, newTags: string[]) => void;
 }) {
-  const columns: { platform: Platform; label: string; accent: string }[] = [
-    { platform: "instagram", label: "Instagram", accent: "from-pink-50 to-white border-pink-100" },
-    { platform: "tiktok",    label: "TikTok",    accent: "from-gray-100 to-white border-gray-200" },
-    { platform: "youtube",   label: "YouTube",   accent: "from-red-50 to-white border-red-100" },
-  ];
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverTier, setDragOverTier] = useState<KanbanTier | null>(null);
+
+  function handleDrop(tier: KanbanTier) {
+    if (!draggingId) return;
+    const stat = stats.find((s) => s.influencer.id === draggingId);
+    if (!stat) return;
+    const col = KANBAN_COLUMNS.find((c) => c.tier === tier)!;
+    const currentTier = resolveTier(stat.influencer.tags, stat.roi);
+    if (currentTier !== tier) {
+      const next = applyTierChange(stat.influencer.tags, col);
+      onMoveToTier(draggingId, next);
+    }
+    setDraggingId(null);
+    setDragOverTier(null);
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {columns.map((col) => {
-        const colStats = stats.filter((s) => s.influencer.platform === col.platform);
+      {KANBAN_COLUMNS.map((col) => {
+        const colStats = stats.filter(
+          (s) => resolveTier(s.influencer.tags, s.roi) === col.tier
+        );
         const totalNet = colStats.reduce((a, s) => a + s.net_revenue, 0);
+        const isDropTarget = dragOverTier === col.tier;
+
         return (
           <div
-            key={col.platform}
-            className={clsx("rounded-2xl border bg-gradient-to-b p-3", col.accent)}
+            key={col.tier}
+            onDragOver={(e) => {
+              if (draggingId) {
+                e.preventDefault();
+                setDragOverTier(col.tier);
+              }
+            }}
+            onDragLeave={() => setDragOverTier((t) => (t === col.tier ? null : t))}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleDrop(col.tier);
+            }}
+            className={clsx(
+              "rounded-2xl border-2 p-3 transition-all duration-150 min-h-[400px]",
+              col.container,
+              isDropTarget && "ring-4 ring-offset-2 " + (
+                col.tier === "top" ? "ring-emerald-300" :
+                col.tier === "mid" ? "ring-amber-300" : "ring-red-300"
+              )
+            )}
           >
+            {/* Column header */}
             <div className="flex items-center justify-between mb-3 px-1">
               <div className="flex items-center gap-2">
-                <PlatformBadge platform={col.platform} />
-                <span className="text-xs font-semibold text-gray-700">{colStats.length}</span>
+                <div className={clsx("w-2 h-2 rounded-full", col.dot)} />
+                <div>
+                  <p className={clsx("text-xs font-bold uppercase tracking-wide leading-none", col.header)}>
+                    {col.label}
+                  </p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{col.hint}</p>
+                </div>
               </div>
-              <span className="text-xs font-semibold text-gray-600 tabular-nums">{formatEUR(totalNet)}</span>
+              <div className="text-right">
+                <span className={clsx("text-sm font-bold tabular-nums", col.count)}>{colStats.length}</span>
+                <p className="text-[10px] text-gray-500 tabular-nums">{formatEUR(totalNet)}</p>
+              </div>
             </div>
+
+            {/* Cards */}
             <div className="space-y-2">
-              {colStats.length === 0 && (
-                <div className="text-xs text-gray-400 text-center py-8">Keine Einträge</div>
+              {colStats.length === 0 && !isDropTarget && (
+                <div className="text-xs text-gray-400 text-center py-12 italic">
+                  Karten hierher ziehen
+                </div>
               )}
               {colStats.map((s) => {
                 const inf = s.influencer;
+                const isDragging = draggingId === inf.id;
                 return (
-                  <Link
+                  <div
                     key={inf.id}
-                    href={`/influencer/${inf.id}`}
-                    className="block bg-white rounded-lg border border-gray-100 p-3 hover:border-emerald-200 hover:shadow-sm transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-sm text-gray-900 truncate">{inf.name}</div>
-                        <div className="text-[10px] text-gray-400 truncate">{inf.handle}</div>
-                      </div>
-                      <span className={clsx(
-                        "text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0",
-                        s.profit >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-50 text-red-600"
-                      )}>
-                        {s.roi.toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1.5">
-                      <span className="font-semibold text-gray-700 tabular-nums">{formatEUR(s.net_revenue)}</span>
-                      <span>{s.total_orders} Orders</span>
-                      <span className={clsx(
-                        "tabular-nums",
-                        s.return_rate > 25 ? "text-red-600" : s.return_rate > 15 ? "text-amber-600" : ""
-                      )}>{formatPct(s.return_rate)}</span>
-                    </div>
-                    {inf.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {inf.tags.slice(0, 3).map((t) => (
-                          <button
-                            key={t}
-                            onClick={(e) => { e.preventDefault(); onTagClick(t); }}
-                            className={clsx(
-                              "text-[9px] font-semibold px-1.5 py-0.5 rounded-full border",
-                              tagClass(t)
-                            )}
-                          >
-                            {t}
-                          </button>
-                        ))}
-                      </div>
+                    draggable
+                    onDragStart={() => setDraggingId(inf.id)}
+                    onDragEnd={() => { setDraggingId(null); setDragOverTier(null); }}
+                    className={clsx(
+                      "group bg-white rounded-lg border border-gray-100 p-3 cursor-grab active:cursor-grabbing transition-all",
+                      isDragging ? "opacity-40 scale-95" : "hover:border-emerald-200 hover:shadow-sm"
                     )}
-                  </Link>
+                  >
+                    <Link
+                      href={`/influencer/${inf.id}`}
+                      onClick={(e) => { if (draggingId) e.preventDefault(); }}
+                      className="block"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className={clsx(
+                            "w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-bold shrink-0",
+                            PLATFORM_AVATAR[inf.platform]
+                          )}>
+                            {avatarInitials(inf.name)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-xs text-gray-900 truncate leading-tight">{inf.name}</div>
+                            <div className="text-[10px] text-gray-400 truncate">{inf.handle}</div>
+                          </div>
+                        </div>
+                        <span className={clsx(
+                          "text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 tabular-nums",
+                          ROI_TIER_STYLE[roiTier(s.roi)].badge
+                        )}>
+                          {s.roi.toFixed(0)}%
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] mb-1.5">
+                        <span className="font-bold text-gray-800 tabular-nums">{formatEUR(s.net_revenue)}</span>
+                        <span className="text-gray-400">{s.total_orders} Orders</span>
+                        <span className={clsx(
+                          "tabular-nums",
+                          s.return_rate > 25 ? "text-red-600" : s.return_rate > 15 ? "text-amber-600" : "text-gray-400"
+                        )}>{formatPct(s.return_rate)}</span>
+                      </div>
+
+                      {inf.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {inf.tags.slice(0, 3).map((t) => (
+                            <button
+                              key={t}
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTagClick(t); }}
+                              className={clsx(
+                                "text-[9px] font-semibold px-1.5 py-0.5 rounded-full border",
+                                tagClass(t)
+                              )}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </Link>
+                  </div>
                 );
               })}
             </div>
