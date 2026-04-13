@@ -29,7 +29,7 @@ function avatarInitials(name: string): string {
 type RoiTier = "top" | "mid" | "risk";
 
 function roiTier(roi: number): RoiTier {
-  if (roi >= 200) return "top";
+  if (roi >= 400) return "top";
   if (roi >= 100) return "mid";
   return "risk";
 }
@@ -44,6 +44,7 @@ type ViewMode = "cards" | "table" | "kanban";
 const VIEW_MODE_KEY = "influencer-view-mode";
 
 type SortKey =
+  | "name"
   | "roi"
   | "profit"
   | "net_revenue"
@@ -57,6 +58,7 @@ type SortKey =
 type StatusFilter = "all" | "active" | "inactive";
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "name",           label: "Name A–Z"        },
   { key: "roi",            label: "ROI"             },
   { key: "profit",         label: "Profit"          },
   { key: "net_revenue",    label: "Netto-Umsatz"    },
@@ -81,6 +83,7 @@ function tagClass(tag: string) {
 
 function getStatValue(s: InfluencerStats, key: SortKey): number {
   switch (key) {
+    case "name":          return 0; // String-Sort handled separat
     case "roi":           return s.roi;
     case "profit":        return s.profit;
     case "net_revenue":   return s.net_revenue;
@@ -152,6 +155,10 @@ export function InfluencerListClient({ initialStats }: { initialStats: Influence
   const sorted = useMemo(() => {
     const arr = [...filtered];
     arr.sort((a, b) => {
+      if (sortKey === "name") {
+        const cmp = a.influencer.name.localeCompare(b.influencer.name, "de");
+        return sortDir === "desc" ? -cmp : cmp;
+      }
       const va = getStatValue(a, sortKey);
       const vb = getStatValue(b, sortKey);
       return sortDir === "desc" ? vb - va : va - vb;
@@ -675,7 +682,7 @@ function TableView({
   sortDir: "desc" | "asc";
   onSort: (k: SortKey) => void;
 }) {
-  const columns: { key: SortKey | "name" | "tags"; label: string; align?: "right" }[] = [
+  const columns: { key: SortKey | "tags"; label: string; align?: "right" }[] = [
     { key: "name",          label: "Influencer"     },
     { key: "total_orders",  label: "Orders",  align: "right" },
     { key: "gross_revenue", label: "Brutto",  align: "right" },
@@ -694,7 +701,7 @@ function TableView({
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               {columns.map((c) => {
-                const sortable = c.key !== "name" && c.key !== "tags";
+                const sortable = c.key !== "tags";
                 const active = sortable && c.key === sortKey;
                 return (
                   <th
@@ -801,7 +808,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     tier: "top",
     label: "Top Performer",
-    hint: "ROI ≥ 200%",
+    hint: "ROI ≥ 400%",
     addTag: "Top Performer",
     removeTag: "Risiko",
     container: "bg-emerald-50/60 border-emerald-200",
@@ -812,7 +819,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     tier: "mid",
     label: "Mid",
-    hint: "ROI 100–200%",
+    hint: "ROI 100–399%",
     addTag: null,
     removeTag: "Top Performer", // Risiko bleibt erhalten, da Mid neutral ist
     container: "bg-amber-50/60 border-amber-200",
