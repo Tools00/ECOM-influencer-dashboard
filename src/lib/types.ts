@@ -48,6 +48,7 @@ export interface Order {
   shopify_order_id?: string;   // Shopify Order ID — für 2-Way Sync
   customer_id?: string;        // Shopify Customer ID — für Kundenanalysen
   return_date?: string;        // ISO "YYYY-MM-DD" — wann retourniert
+  created_at?: string;         // Supabase Timestamp — für Sortierung innerhalb eines Tages
 }
 
 export interface InfluencerStats {

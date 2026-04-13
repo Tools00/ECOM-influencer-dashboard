@@ -109,9 +109,18 @@ export function computeRefundAmount(refund: ShopifyRefund): number {
  * Bestimmt die Produktkategorie aus dem ersten Line-Item.
  * Fallback: "Sonstiges".
  */
-export function parseCategory(lineItems: ShopifyLineItem[]): string {
+export function parseCategory(lineItems: ShopifyLineItem[], tags?: string): string {
+  // 1) product_type aus Line-Items (native Shopify)
   const type = lineItems?.[0]?.product_type?.trim();
-  return type || "Sonstiges";
+  if (type) return type;
+
+  // 2) Fallback: niche-Tag aus Simulator (z.B. "niche:Fashion")
+  if (tags) {
+    const nicheMatch = tags.match(/niche:(\w+)/i);
+    if (nicheMatch) return nicheMatch[1]!;
+  }
+
+  return "Sonstiges";
 }
 
 /**

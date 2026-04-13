@@ -112,6 +112,7 @@ const OrderRowSchema = z.object({
   shopify_order_id: z.string().nullable().optional(),
   customer_id:      z.string().nullable().optional(),
   return_date:      z.string().nullable().optional(),
+  created_at:       z.string().nullable().optional(),
 }).transform((row): Order => ({
   id:               row.id,
   influencer_id:    row.influencer_id,
@@ -125,6 +126,7 @@ const OrderRowSchema = z.object({
   shopify_order_id: row.shopify_order_id ?? undefined,
   customer_id:      row.customer_id ?? undefined,
   return_date:      row.return_date ?? undefined,
+  created_at:       row.created_at ?? undefined,
 }));
 
 const InfluencersSchema = z.array(InfluencerRowSchema);
