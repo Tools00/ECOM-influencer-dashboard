@@ -37,7 +37,12 @@ export function InfluencerOrdersTable({ orders }: Props) {
   const sorted = [...filtered].sort((a, b) => {
     const mul = sortDir === "asc" ? 1 : -1;
     if (sortKey === "gross_value_eur") return (a.gross_value_eur - b.gross_value_eur) * mul;
-    return a[sortKey].localeCompare(b[sortKey]) * mul;
+    const cmp = a[sortKey].localeCompare(b[sortKey]) * mul;
+    // Bei gleichem Datum: neueste zuerst (nach created_at Timestamp)
+    if (cmp === 0 && sortKey === "order_date") {
+      return (b.created_at ?? "").localeCompare(a.created_at ?? "");
+    }
+    return cmp;
   });
 
   const metaAdsCount = orders.filter((o) => o.order_source === "meta_ads").length;

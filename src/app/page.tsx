@@ -17,7 +17,7 @@ import { KPICard } from "@/components/KPICard";
 import { InfluencerTable } from "@/components/InfluencerTable";
 import { RevenueTrendChart } from "@/components/RevenueTrendChart";
 import { CategoryDonutChart } from "@/components/CategoryDonutChart";
-import { RecentOrdersFeed } from "@/components/RecentOrdersFeed";
+import { LiveOrdersFeed } from "@/components/LiveOrdersFeed";
 import { AttributionOverview } from "@/components/AttributionOverview";
 import { Header } from "@/components/layout/Header";
 import { DateRangeSelector } from "@/components/DateRangeSelector";
@@ -151,7 +151,7 @@ export default async function DashboardPage({ searchParams }: Props) {
           </div>
           <div className="space-y-5">
             <AttributionOverview attribution={attribution} />
-            <RecentOrdersFeed orders={filteredOrders} influencers={influencers} />
+            <LiveOrdersFeed />
           </div>
         </section>
 
